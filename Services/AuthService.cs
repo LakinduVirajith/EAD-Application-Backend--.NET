@@ -38,39 +38,31 @@ namespace ASP.NET___CRUD.Services
             };
 
             // CHECK IF THE ROLE IS ADMIN AND ALLOW ONLY BASIC FIELDS
-            if (model.Role.Equals("Admin", StringComparison.OrdinalIgnoreCase))
+            if (model.Role.Equals("Admin") || model.Role.Equals("CSR"))
             {
-                user.ProfileImageUrl = null;         
-                user.DateOfBirth = default;
-                user.Gender = null;
-                user.Address = null;
-                user.City = null;
-                user.State = null;
-                user.PostalCode = null;
-                user.Bio = null;
-                user.BusinessName = null;
-                user.BusinessLicenseNumber = null;
-                user.PreferredPaymentMethod = null;
                 user.IsActive = true;
             }
-            else if (model.Role.Equals("Vendor", StringComparison.OrdinalIgnoreCase))
+            else if (model.Role.Equals("Vendor") || model.Role.Equals("Customer"))
+            {
+                // VENDOR ROLE OR CUSTOMER ROLE
+                user.DateOfBirth = model.DateOfBirth;
+                user.Gender = model.Gender;
+                user.Address = model.Address;
+                user.City = model.City;
+                user.State = model.State;
+                user.PostalCode = model.PostalCode;
+                user.IsActive = false;
+            }
+            
+            if (model.Role.Equals("Vendor"))
             {
                 // VENDOR ROLE: ALLOW ALL FIELDS
                 user.Bio = model.Bio;
                 user.BusinessName = model.BusinessName;
                 user.BusinessLicenseNumber = model.BusinessLicenseNumber;
                 user.PreferredPaymentMethod = model.PreferredPaymentMethod;
-                user.IsActive = false;
             }
-            else
-            {
-                // CUSTOMER ROLE: NO VENDOR FIELDS ALLOWED
-                user.Bio = null;
-                user.BusinessName = null;
-                user.BusinessLicenseNumber = null;
-                user.PreferredPaymentMethod = null;
-                user.IsActive = false;
-            }
+            
 
             // CREATE USER WITH PASSWORD
             var result = await _userManager.CreateAsync(user, model.Password);

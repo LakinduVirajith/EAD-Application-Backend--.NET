@@ -157,7 +157,6 @@ namespace EAD_Backend_Application__.NET.Services
             // COMMONLY UPDATED FIELDS
             user.UserName = model.UserName;
             user.PhoneNumber = model.PhoneNumber;
-            user.ProfileImageUrl = model.ProfileImageUrl;
             user.DateOfBirth = model.DateOfBirth;
             user.Gender = model.Gender;
             user.Address = model.Address;
