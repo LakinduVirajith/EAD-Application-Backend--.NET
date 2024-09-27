@@ -1,5 +1,5 @@
-﻿using EAD_Backend_Application__.NET.Helpers;
-using EAD_Backend_Application__.NET.Models;
+﻿using EAD_Backend_Application__.NET.DTOs;
+using EAD_Backend_Application__.NET.Helpers;
 using EAD_Backend_Application__.NET.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -29,9 +29,9 @@ namespace EAD_Backend_Application__.NET.Controllers
 
         // POST: api/v1/auth/sign-up
         [HttpPost("auth/sign-up")]
-        public async Task<IActionResult> Register(RegisterModel model)
+        public async Task<IActionResult> Register(RegisterDTO dto)
         {
-            var result = await _authService.RegisterUserAsync(model);
+            var result = await _authService.RegisterUserAsync(dto);
 
             if (result.Succeeded)
             {
@@ -43,9 +43,9 @@ namespace EAD_Backend_Application__.NET.Controllers
 
         // POST: api/v1/auth/sign-in
         [HttpPost("auth/sign-in")]
-        public async Task<IActionResult> Login(LoginModel model)
+        public async Task<IActionResult> Login(LoginDTO dto)
         {
-            var (token, refreshToken) = await _authService.AuthenticateUserAsync(model);
+            var (token, refreshToken) = await _authService.AuthenticateUserAsync(dto);
 
             if (token != null)
             {
@@ -92,25 +92,25 @@ namespace EAD_Backend_Application__.NET.Controllers
         // PUT: api/v1/users/update/email
         [HttpPut("users/update/email")]
         [Authorize]
-        public async Task<IActionResult> UpdateUserEmail(UpdateEmailModel updateEmail)
+        public async Task<IActionResult> UpdateUserEmail(UpdateEmailDTO dto)
         {
-            return await _userService.UpdateUserEmailAsync(updateEmail);
+            return await _userService.UpdateUserEmailAsync(dto);
         }
 
         // PUT: api/v1/users/update/password
         [HttpPut("users/update/password")]
         [Authorize]
-        public async Task<IActionResult> UpdateUserPassword(UpdatePasswordModel updatePassword)
+        public async Task<IActionResult> UpdateUserPassword(UpdatePasswordDTO dto)
         {
-            return await _userService.UpdateUserPasswordAsync(updatePassword);
+            return await _userService.UpdateUserPasswordAsync(dto);
         }
 
         // PUT: api/v1/users/update/details
         [HttpPut("users/update/details")]
         [Authorize]
-        public async Task<IActionResult> UpdateUserDetails(UpdateUserModel model)
+        public async Task<IActionResult> UpdateUserDetails(UpdateUserDTO dto)
         {
-            return await _userService.UpdateUserDetailsAsync(model);
+            return await _userService.UpdateUserDetailsAsync(dto);
         }
 
         // DELETE: api/v1/users/delete/{email}

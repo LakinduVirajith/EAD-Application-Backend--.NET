@@ -1,4 +1,5 @@
-﻿using EAD_Backend_Application__.NET.Models;
+﻿using EAD_Backend_Application__.NET.DTOs;
+using EAD_Backend_Application__.NET.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -7,10 +8,10 @@ namespace EAD_Backend_Application__.NET.Services
 {
     public class UserService : IUserService
     {
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly UserManager<UserModel> _userManager;
         private readonly TokenService _tokenService;
 
-        public UserService(UserManager<ApplicationUser> userManager, TokenService tokenService)
+        public UserService(UserManager<UserModel> userManager, TokenService tokenService)
         {
             _userManager = userManager;
             _tokenService = tokenService;
@@ -80,59 +81,59 @@ namespace EAD_Backend_Application__.NET.Services
             return new ConflictObjectResult(new { Status = "Error", Message = "Failed to deactivate user. Please try again." });
         }
 
-        public async Task<IActionResult> UpdateUserEmailAsync(UpdateEmailModel updateEmail)
+        public async Task<IActionResult> UpdateUserEmailAsync(UpdateEmailDTO dto)
         {
             // FIND THE USER BY CURRENT EMAIL
-            var user = await _userManager.FindByEmailAsync(updateEmail.CurrentEmail);
+            var user = await _userManager.FindByEmailAsync(dto.CurrentEmail);
 
             // CHECK IF USER EXISTS
             if (user == null)
             {
-                return new NotFoundObjectResult(new { Status = "Error", Message = $"User with email {updateEmail.CurrentEmail} not found." });
+                return new NotFoundObjectResult(new { Status = "Error", Message = $"User with email {dto.CurrentEmail} not found." });
             }
 
             // CHECK IF THE NEW EMAIL IS ALREADY IN USE
-            var existingUserWithNewEmail = await _userManager.FindByEmailAsync(updateEmail.NewEmail);
+            var existingUserWithNewEmail = await _userManager.FindByEmailAsync(dto.NewEmail);
             if (existingUserWithNewEmail != null)
             {
-                return new ConflictObjectResult(new { Status = "Error", Message = $"Email {updateEmail.NewEmail} is already in use." });
+                return new ConflictObjectResult(new { Status = "Error", Message = $"Email {dto.NewEmail} is already in use." });
             }
 
             // UPDATE USER EMAIL
-            user.Email = updateEmail.NewEmail;
+            user.Email = dto.NewEmail;
 
             // UPDATE THE USER'S DETAILS IN THE DATABASE
             var result = await _userManager.UpdateAsync(user);
 
             if (result.Succeeded)
             {
-                return new OkObjectResult(new { Status = "Success", Message = $"User email updated to {updateEmail.NewEmail} successfully." });
+                return new OkObjectResult(new { Status = "Success", Message = $"User email updated to {dto.NewEmail} successfully." });
             }
 
             // HANDLE FAILURE CASE
             return new ConflictObjectResult(new { Status = "Error", Message = "Failed to update user email. Please try again." });
         }
 
-        public async Task<IActionResult> UpdateUserPasswordAsync(UpdatePasswordModel updatePassword)
+        public async Task<IActionResult> UpdateUserPasswordAsync(UpdatePasswordDTO dto)
         {
             // FIND THE USER BY EMAIL
-            var user = await _userManager.FindByEmailAsync(updatePassword.Email);
+            var user = await _userManager.FindByEmailAsync(dto.Email);
 
             // CHECK IF USER EXISTS
             if (user == null)
             {
-                return new NotFoundObjectResult(new { Status = "Error", Message = $"User with email {updatePassword.Email} not found." });
+                return new NotFoundObjectResult(new { Status = "Error", Message = $"User with email {dto.Email} not found." });
             }
 
             // VERIFY THE CURRENT PASSWORD
-            var passwordVerificationResult = await _userManager.CheckPasswordAsync(user, updatePassword.CurrentPassword);
+            var passwordVerificationResult = await _userManager.CheckPasswordAsync(user, dto.CurrentPassword);
             if (!passwordVerificationResult)
             {
                 return new ConflictObjectResult(new { Status = "Error", Message = "Current password is incorrect." });
             }
 
             // UPDATE THE USER'S PASSWORD
-            var result = await _userManager.ChangePasswordAsync(user, updatePassword.CurrentPassword, updatePassword.NewPassword);
+            var result = await _userManager.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
 
             if (result.Succeeded)
             {
@@ -143,54 +144,54 @@ namespace EAD_Backend_Application__.NET.Services
             return new ConflictObjectResult(new { Status = "Error", Message = "Failed to update password. Please try again." });
         }
 
-        public async Task<IActionResult> UpdateUserDetailsAsync(UpdateUserModel model)
+        public async Task<IActionResult> UpdateUserDetailsAsync(UpdateUserDTO dto)
         {
             // FIND THE USER BY EMAIL
-            var user = await _userManager.FindByEmailAsync(model.Email);
+            var user = await _userManager.FindByEmailAsync(dto.Email);
 
             // CHECK IF USER EXISTS
             if (user == null)
             {
-                return new NotFoundObjectResult(new { Status = "Error", Message = $"User with email {model.Email} not found." });
+                return new NotFoundObjectResult(new { Status = "Error", Message = $"User with email {dto.Email} not found." });
             }
 
             // COMMONLY UPDATED FIELDS
-            user.UserName = model.UserName;
-            user.PhoneNumber = model.PhoneNumber;
-            user.DateOfBirth = model.DateOfBirth;
-            user.Gender = model.Gender;
-            user.Address = model.Address;
-            user.City = model.City;
-            user.State = model.State;
-            user.PostalCode = model.PostalCode;
+            user.UserName = dto.UserName;
+            user.PhoneNumber = dto.PhoneNumber;
+            user.DateOfBirth = dto.DateOfBirth;
+            user.Gender = dto.Gender;
+            user.Address = dto.Address;
+            user.City = dto.City;
+            user.State = dto.State;
+            user.PostalCode = dto.PostalCode;
 
             // UPDATE USER DETAILS BASED ON ROLE
             if (user.Role.Equals("Admin") || user.Role.Equals("CSR"))
             {
                 // ADMIN ROLE: UPDATE BASIC FIELDS ONLY
-                user.IsActive = model.IsActive;
-                user.Bio = model.Bio;
-                user.BusinessName = model.BusinessName;
-                user.BusinessLicenseNumber = model.BusinessLicenseNumber;
-                user.PreferredPaymentMethod = model.PreferredPaymentMethod;
+                user.IsActive = dto.IsActive;
+                user.Bio = dto.Bio;
+                user.BusinessName = dto.BusinessName;
+                user.BusinessLicenseNumber = dto.BusinessLicenseNumber;
+                user.PreferredPaymentMethod = dto.PreferredPaymentMethod;
 
                 // CHANGE EMAIL
-                if (!string.IsNullOrEmpty(model.NewEmail))
+                if (!string.IsNullOrEmpty(dto.NewEmail))
                 {
-                    var existingUser = await _userManager.FindByEmailAsync(model.NewEmail);
+                    var existingUser = await _userManager.FindByEmailAsync(dto.NewEmail);
                     if (existingUser != null)
                     {
                         return new ConflictObjectResult(new { Status = "Error", Message = "New Email is already in use by another user." });
                     }
 
-                    user.Email = model.NewEmail;
+                    user.Email = dto.NewEmail;
                 }
 
                 // CHANGE PASSWORD
-                if (!string.IsNullOrEmpty(model.Password))
+                if (!string.IsNullOrEmpty(dto.Password))
                 {
                     var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
-                    var passwordResetResult = await _userManager.ResetPasswordAsync(user, resetToken, model.Password);
+                    var passwordResetResult = await _userManager.ResetPasswordAsync(user, resetToken, dto.Password);
                     if (!passwordResetResult.Succeeded)
                     {
                         return new ConflictObjectResult(new { Status = "Error", Message = "Failed to update password." });
@@ -200,10 +201,10 @@ namespace EAD_Backend_Application__.NET.Services
             else if (user.Role.Equals("Vendor"))
             {
                 // VENDOR ROLE: UPDATE ALL FIELDS
-                user.Bio = model.Bio;
-                user.BusinessName = model.BusinessName;
-                user.BusinessLicenseNumber = model.BusinessLicenseNumber;
-                user.PreferredPaymentMethod = model.PreferredPaymentMethod;
+                user.Bio = dto.Bio;
+                user.BusinessName = dto.BusinessName;
+                user.BusinessLicenseNumber = dto.BusinessLicenseNumber;
+                user.PreferredPaymentMethod = dto.PreferredPaymentMethod;
             }
 
             // UPDATE THE USER IN THE DATABASE
@@ -211,7 +212,7 @@ namespace EAD_Backend_Application__.NET.Services
 
             if (result.Succeeded)
             {
-                return new OkObjectResult(new { Status = "Success", Message = $"User with email {model.Email} updated successfully." });
+                return new OkObjectResult(new { Status = "Success", Message = $"User with email {dto.Email} updated successfully." });
             }
 
             // HANDLE FAILURE CASE

@@ -55,6 +55,6 @@ namespace EAD_Backend_Application__.NET.Data
         //    - Provides configuration support using JSON files (like appsettings.json).
         //    - Installation: dotnet add package Microsoft.Extensions.Configuration.Json
 
-        public DbSet<EAD_Backend_Application__.NET.Models.ApplicationUser> ApplicationUser { get; set; } = default!;
+        public DbSet<EAD_Backend_Application__.NET.Models.UserModel> User { get; set; } = default!;
     }
 }
