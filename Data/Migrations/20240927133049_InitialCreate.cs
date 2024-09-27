@@ -32,7 +32,7 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Discriminator = table.Column<string>(type: "nvarchar(21)", maxLength: 21, nullable: false),
                     ProfileImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    DateOfBirth = table.Column<DateOnly>(type: "date", nullable: true),
+                    DateOfBirth = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Gender = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     City = table.Column<string>(type: "nvarchar(max)", nullable: true),

@@ -159,7 +159,7 @@ namespace EAD_Backend_Application__.NET
         private static async Task CreateRoles(IServiceProvider serviceProvider)
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-            string[] roleNames = { "Admin", "Vendor", "Customer" };
+            string[] roleNames = { "Admin", "CSR", "Vendor", "Customer" };
             IdentityResult roleResult;
 
             foreach (var roleName in roleNames)
