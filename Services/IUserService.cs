@@ -1,5 +1,4 @@
-﻿
-using EAD_Backend_Application__.NET.DTOs;
+﻿using EAD_Backend_Application__.NET.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EAD_Backend_Application__.NET.Services

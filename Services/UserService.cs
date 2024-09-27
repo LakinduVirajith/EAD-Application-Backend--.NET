@@ -1,6 +1,5 @@
 ﻿using EAD_Backend_Application__.NET.DTOs;
 using EAD_Backend_Application__.NET.Models;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
