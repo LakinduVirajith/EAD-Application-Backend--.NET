@@ -1,6 +1,7 @@
 ﻿using EAD_Backend_Application__.NET.DTOs;
 using EAD_Backend_Application__.NET.Services;
 using Microsoft.AspNetCore.Mvc;
+using Swashbuckle.AspNetCore.Annotations;
 
 namespace EAD_Backend_Application__.NET.Controllers
 {
@@ -17,6 +18,7 @@ namespace EAD_Backend_Application__.NET.Controllers
             _authService = authService;
         }
 
+        /// <summary>Registers a new user in the system.</summary>
         // POST: api/v1/auth/sign-up
         [HttpPost("sign-up")]
         public async Task<IActionResult> Register(RegisterDTO dto)
@@ -31,6 +33,7 @@ namespace EAD_Backend_Application__.NET.Controllers
             return BadRequest(result.Errors);
         }
 
+        /// <summary>Authenticates a user and returns JWT and refresh tokens.</summary>
         // POST: api/v1/auth/sign-in
         [HttpPost("sign-in")]
         public async Task<IActionResult> Login(LoginDTO dto)
@@ -45,6 +48,7 @@ namespace EAD_Backend_Application__.NET.Controllers
             return Unauthorized();
         }
 
+        /// <summary>Generates a new JWT token and refresh token using the provided refresh token.</summary>
         // POST: api/v1/auth/refresh-token
         [HttpPost("refresh-token/{refreshToken}")]
         public async Task<IActionResult> RefreshToken(string refreshToken)

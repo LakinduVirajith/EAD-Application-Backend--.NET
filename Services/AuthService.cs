@@ -90,7 +90,7 @@ namespace ASP.NET___CRUD.Services
             }
 
             // CHECK IF THE USER EXISTS AND THE PASSWORD IS CORRECT
-            if (user != null && await _userManager.CheckPasswordAsync(user, dto.Password))
+            if (user != null && user.IsActive && await _userManager.CheckPasswordAsync(user, dto.Password))
             {
                 // GET THE ROLES ASSOCIATED WITH THE USER
                 var roles = await _userManager.GetRolesAsync(user);
