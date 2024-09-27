@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+﻿using EAD_Backend_Application__.NET.Models;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace EAD_Backend_Application__.NET.Data
@@ -55,6 +56,60 @@ namespace EAD_Backend_Application__.NET.Data
         //    - Provides configuration support using JSON files (like appsettings.json).
         //    - Installation: dotnet add package Microsoft.Extensions.Configuration.Json
 
-        public DbSet<EAD_Backend_Application__.NET.Models.UserModel> User { get; set; } = default!;
+        public DbSet<UserModel> Users { get; set; } = default!;
+        public DbSet<ProductModel> Products { get; set; } = default!;
+        public DbSet<ProductColor> ProductColors { get; set; } = default!;
+        public DbSet<ProductSize> ProductSizes { get; set; } = default!;
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            // CONFIGURE USER MODEL
+            modelBuilder.Entity<UserModel>(entity =>
+            {
+                entity.ToTable("Users");
+
+                // CONFIGURE FOREIGN KEY RELATIONSHIP WITH PRODUCTS
+                entity.HasMany(u => u.Products)
+                  .WithOne(p => p.User) 
+                  .HasForeignKey(p => p.VendorId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // CONFIGURE PRODUCT MODEL
+            modelBuilder.Entity<ProductModel>(entity =>
+            {
+                entity.ToTable("Products");
+                entity.HasKey(p => p.ProductId);
+
+                // CONFIGURE ONE-TO-MANY RELATIONSHIP WITH PRODUCT-COLOR
+                entity.HasMany(p => p.Colors)
+                      .WithOne(c => c.Product)
+                      .HasForeignKey(c => c.ProductId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // CONFIGURE ONE-TO-MANY RELATIONSHIP WITH PRODUCT-SIZE
+                entity.HasMany(p => p.Sizes)
+                      .WithOne(s => s.Product)
+                      .HasForeignKey(s => s.ProductId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // CONFIGURE PRODUCT COLOR
+            modelBuilder.Entity<ProductColor>(entity =>
+            {
+                entity.ToTable("ProductColors");
+                entity.HasKey(c => c.ColorId);
+            });
+
+            // CONFIGURE PRODUCT SIZE
+            modelBuilder.Entity<ProductSize>(entity =>
+            {
+                entity.ToTable("ProductSizes");
+                entity.HasKey(s => s.SizeId);
+            });
+        }
+
     }
 }

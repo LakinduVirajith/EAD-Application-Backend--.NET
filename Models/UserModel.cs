@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 
 namespace EAD_Backend_Application__.NET.Models
 {
@@ -19,9 +20,14 @@ namespace EAD_Backend_Application__.NET.Models
         public string? BusinessLicenseNumber { get; set; }
         public string? PreferredPaymentMethod { get; set; }
 
-        // COMMON FIELDS FOR BOTH CUSTOMER, VENDORS AND ADMIN
+        // COMMON FIELDS FOR ALL ADMIN, CSR, VENDORS AND CUSTOMER
+        [Required]
         public string Role { get; set; } = string.Empty;
+        [Required]
         public bool IsActive { get; set; }
+
+        // NAVIGATION PROPERTY FOR PRODUCTS PUBLISHED BY THE VENDOR
+        public virtual ICollection<ProductModel> Products { get; set; } = new List<ProductModel>();
         public UserModel()
         {
             
