@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using System.Reflection;
 using System.Text;
 
 namespace EAD_Backend_Application__.NET
@@ -65,6 +66,7 @@ namespace EAD_Backend_Application__.NET
             // 4. DEPENDENCY INJECTION
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddScoped<TokenService>();
 
             // 5. CONTROLLER & AUTHORIZATION CONFIGURATION
@@ -86,10 +88,15 @@ namespace EAD_Backend_Application__.NET
                     Description = "API for managing backend operations."
                 });
 
+                // INCLUDE XML COMMENTS IF THEY EXIST
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
+
                 // DEFINE THE SECURITY SCHEME FOR JWT
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {
-                    Description = "JWT Authorization header using the Bearer scheme (Example: 'Bearer 12345abcdef')",
+                    Description = "JWT Authorization header using the Bearer scheme (Example: 'Bearer 6465asdasd6561asd...')",
                     Name = "Authorization",
                     In = ParameterLocation.Header,
                     Type = SecuritySchemeType.Http,
