@@ -13,15 +13,15 @@ using System.Text;
 namespace EAD_Backend_Application__.NET.Controllers
 {
 
-    [Route("api/v1/[controller]")]
+    [Route("api/v1")]
     [ApiController]
     public class AuthController : ControllerBase
     {
 
         private readonly IAuthService _authService;
-        private readonly UserService _userService;
+        private readonly IUserService _userService;
 
-        public AuthController(IAuthService authService, UserService userService)
+        public AuthController(IAuthService authService, IUserService userService)
         {
             _authService = authService;
             _userService = userService;
@@ -75,92 +75,50 @@ namespace EAD_Backend_Application__.NET.Controllers
         }
 
         // PUT: api/v1/users/activate/{email}
-        [HttpPost("users/activate/{email}")]
+        [HttpPut("users/activate/{email}")]
         [Authorize(Roles = "Administrator, CSR")]
         public async Task<IActionResult> ActivateUser(string email)
         {
-            var result = await _userService.ActivateUserAsync(email);
-
-            if (result.Succeeded)
-            {
-                return Ok("User account activated successfully!");
-            }
-
-            return BadRequest(result.Errors);
+            return await _userService.ActivateUserAsync(email);
         }
 
         // PUT: api/v1/users/deactivate/{email}
-        [HttpDelete("users/deactivate/{email}")]
+        [HttpPut("users/deactivate/{email}")]
         public async Task<IActionResult> DeactivateUser(string email)
         {
-            var result = await _userService.DeactivateUserAsync(email);
-
-            if (result.Succeeded)
-            {
-                return Ok("User account deactivated successfully!");
-            }
-
-            return BadRequest(result.Errors);
+            return await _userService.DeactivateUserAsync(email);
         }
 
         // PUT: api/v1/users/update/email
         [HttpPut("users/update/email")]
         [Authorize]
-        public async Task<IActionResult> UpdateUserEmail(UpdateEmail updateEmail)
+        public async Task<IActionResult> UpdateUserEmail(UpdateEmailModel updateEmail)
         {
-            var result = await _userService.UpdateUserEmailAsync(model);
-
-            if (result.Succeeded)
-            {
-                return Ok("User account updated successfully!");
-            }
-
-            return BadRequest(result.Errors);
+            return await _userService.UpdateUserEmailAsync(updateEmail);
         }
 
         // PUT: api/v1/users/update/password
         [HttpPut("users/update/password")]
         [Authorize]
-        public async Task<IActionResult> UpdateUserPassword(UpdatePassword updatePassword)
+        public async Task<IActionResult> UpdateUserPassword(UpdatePasswordModel updatePassword)
         {
-            var result = await _userService.UpdateUserPasswordAsync(model);
-
-            if (result.Succeeded)
-            {
-                return Ok("User account updated successfully!");
-            }
-
-            return BadRequest(result.Errors);
+            return await _userService.UpdateUserPasswordAsync(updatePassword);
         }
 
         // PUT: api/v1/users/update/details
         [HttpPut("users/update/details")]
         [Authorize]
-        public async Task<IActionResult> UpdateUserDetails(RegisterModel model)
+        public async Task<IActionResult> UpdateUserDetails(UpdateUserModel model)
         {
-            var result = await _userService.UpdateUserDetailsAsync(model);
-
-            if (result.Succeeded)
-            {
-                return Ok("User account updated successfully!");
-            }
-
-            return BadRequest(result.Errors);
+            return await _userService.UpdateUserDetailsAsync(model);
         }
 
         // DELETE: api/v1/users/delete/{email}
-        [HttpPut("users/delete/{email}")]
-        [Authorize]
+        [HttpDelete("users/delete/{email}")]
+        [Authorize(Roles = "Administrator")]
         public async Task<IActionResult> DeleteUser(string email)
         {
-            var result = await _userService.DeleteUserAsync(email);
-
-            if (result.Succeeded)
-            {
-                return Ok("User account updated successfully!");
-            }
-
-            return BadRequest(result.Errors);
+            return await _userService.DeleteUserAsync(email);
         }
     }
 }
