@@ -1,6 +1,7 @@
 ﻿using EAD_Backend_Application__.NET.Helpers;
 using EAD_Backend_Application__.NET.Models;
 using EAD_Backend_Application__.NET.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -18,14 +19,16 @@ namespace EAD_Backend_Application__.NET.Controllers
     {
 
         private readonly IAuthService _authService;
+        private readonly UserService _userService;
 
-        public AuthController(IAuthService authService)
+        public AuthController(IAuthService authService, UserService userService)
         {
             _authService = authService;
+            _userService = userService;
         }
 
         // POST: api/v1/auth/sign-up
-        [HttpPost("sign-up")]
+        [HttpPost("auth/sign-up")]
         public async Task<IActionResult> Register(RegisterModel model)
         {
             var result = await _authService.RegisterUserAsync(model);
@@ -39,7 +42,7 @@ namespace EAD_Backend_Application__.NET.Controllers
         }
 
         // POST: api/v1/auth/sign-in
-        [HttpPost("sign-in")]
+        [HttpPost("auth/sign-in")]
         public async Task<IActionResult> Login(LoginModel model)
         {
             var (token, refreshToken) = await _authService.AuthenticateUserAsync(model);
@@ -53,8 +56,8 @@ namespace EAD_Backend_Application__.NET.Controllers
         }
 
         // POST: api/v1/auth/refresh-token
-        [HttpPost("refresh-token")]
-        public async Task<IActionResult> RefreshToken([FromBody] string refreshToken)
+        [HttpPost("auth/refresh-token/{refreshToken}")]
+        public async Task<IActionResult> RefreshToken(string refreshToken)
         {
             if (string.IsNullOrEmpty(refreshToken))
             {
@@ -69,6 +72,95 @@ namespace EAD_Backend_Application__.NET.Controllers
             }
 
             return Unauthorized();
+        }
+
+        // PUT: api/v1/users/activate/{email}
+        [HttpPost("users/activate/{email}")]
+        [Authorize(Roles = "Administrator, CSR")]
+        public async Task<IActionResult> ActivateUser(string email)
+        {
+            var result = await _userService.ActivateUserAsync(email);
+
+            if (result.Succeeded)
+            {
+                return Ok("User account activated successfully!");
+            }
+
+            return BadRequest(result.Errors);
+        }
+
+        // PUT: api/v1/users/deactivate/{email}
+        [HttpDelete("users/deactivate/{email}")]
+        public async Task<IActionResult> DeactivateUser(string email)
+        {
+            var result = await _userService.DeactivateUserAsync(email);
+
+            if (result.Succeeded)
+            {
+                return Ok("User account deactivated successfully!");
+            }
+
+            return BadRequest(result.Errors);
+        }
+
+        // PUT: api/v1/users/update/email
+        [HttpPut("users/update/email")]
+        [Authorize]
+        public async Task<IActionResult> UpdateUserEmail(UpdateEmail updateEmail)
+        {
+            var result = await _userService.UpdateUserEmailAsync(model);
+
+            if (result.Succeeded)
+            {
+                return Ok("User account updated successfully!");
+            }
+
+            return BadRequest(result.Errors);
+        }
+
+        // PUT: api/v1/users/update/password
+        [HttpPut("users/update/password")]
+        [Authorize]
+        public async Task<IActionResult> UpdateUserPassword(UpdatePassword updatePassword)
+        {
+            var result = await _userService.UpdateUserPasswordAsync(model);
+
+            if (result.Succeeded)
+            {
+                return Ok("User account updated successfully!");
+            }
+
+            return BadRequest(result.Errors);
+        }
+
+        // PUT: api/v1/users/update/details
+        [HttpPut("users/update/details")]
+        [Authorize]
+        public async Task<IActionResult> UpdateUserDetails(RegisterModel model)
+        {
+            var result = await _userService.UpdateUserDetailsAsync(model);
+
+            if (result.Succeeded)
+            {
+                return Ok("User account updated successfully!");
+            }
+
+            return BadRequest(result.Errors);
+        }
+
+        // DELETE: api/v1/users/delete/{email}
+        [HttpPut("users/delete/{email}")]
+        [Authorize]
+        public async Task<IActionResult> DeleteUser(string email)
+        {
+            var result = await _userService.DeleteUserAsync(email);
+
+            if (result.Succeeded)
+            {
+                return Ok("User account updated successfully!");
+            }
+
+            return BadRequest(result.Errors);
         }
     }
 }
