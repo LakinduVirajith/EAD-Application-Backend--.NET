@@ -1,11 +1,13 @@
-﻿using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-
-namespace EAD_Backend_Application__.NET.Models
+﻿namespace EAD_Backend_Application__.NET.DTOs
 {
-    public class ApplicationUser : IdentityUser
+    public class UpdateUserDTO
     {
-        // CUSTOMER SPECIFIC FIELDS
+        public string? UserName { get; set; }
+        public string Email { get; set; } = string.Empty;
+        public string? NewEmail { get; set; }
+        public string? Password { get; set; }
+        public string? PhoneNumber { get; set; }
+
         public string? ProfileImageUrl { get; set; }
         public string? DateOfBirth { get; set; }
         public string? Gender { get; set; }
@@ -14,18 +16,12 @@ namespace EAD_Backend_Application__.NET.Models
         public string? State { get; set; }
         public string? PostalCode { get; set; }
 
-        // VENDOR SPECIFIC FIELDS
         public string? Bio { get; set; }
         public string? BusinessName { get; set; }
         public string? BusinessLicenseNumber { get; set; }
         public string? PreferredPaymentMethod { get; set; }
 
-        // COMMON FIELDS FOR BOTH CUSTOMER, VENDORS AND ADMIN
-        public string Role { get; set; } = string.Empty;
+        public string? Role { get; set; }
         public bool IsActive { get; set; }
-        public ApplicationUser()
-        {
-            
-        }
     }
 }

@@ -1,5 +1,5 @@
 ﻿
-using EAD_Backend_Application__.NET.Models;
+using EAD_Backend_Application__.NET.DTOs;
 using Microsoft.AspNetCore.Mvc;
 
 namespace EAD_Backend_Application__.NET.Services
@@ -8,9 +8,9 @@ namespace EAD_Backend_Application__.NET.Services
     {
         Task<IActionResult> ActivateUserAsync(string email);
         Task<IActionResult> DeactivateUserAsync(string email);
-        Task<IActionResult> UpdateUserEmailAsync(UpdateEmailModel updateEmail);
-        Task<IActionResult> UpdateUserPasswordAsync(UpdatePasswordModel updatePassword);
-        Task<IActionResult> UpdateUserDetailsAsync(UpdateUserModel model);
+        Task<IActionResult> UpdateUserEmailAsync(UpdateEmailDTO dto);
+        Task<IActionResult> UpdateUserPasswordAsync(UpdatePasswordDTO dto);
+        Task<IActionResult> UpdateUserDetailsAsync(UpdateUserDTO dto);
         Task<IActionResult> DeleteUserAsync(string email);
     }
 }

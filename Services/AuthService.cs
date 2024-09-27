@@ -1,4 +1,5 @@
-﻿using EAD_Backend_Application__.NET.Models;
+﻿using EAD_Backend_Application__.NET.DTOs;
+using EAD_Backend_Application__.NET.Models;
 using EAD_Backend_Application__.NET.Services;
 using Microsoft.AspNetCore.Identity;
 using System.IdentityModel.Tokens.Jwt;
@@ -8,20 +9,20 @@ namespace ASP.NET___CRUD.Services
 {
     public class AuthService : IAuthService
     {
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly UserManager<UserModel> _userManager;
         private readonly TokenService _tokenService;
 
-        public AuthService(UserManager<ApplicationUser> userManager, TokenService tokenService)
+        public AuthService(UserManager<UserModel> userManager, TokenService tokenService)
         {
             _userManager = userManager;
             _tokenService = tokenService;
         }
 
         // REGISTER A NEW USER AND ASSIGN A ROLE
-        public async Task<IdentityResult> RegisterUserAsync(RegisterModel model)
+        public async Task<IdentityResult> RegisterUserAsync(RegisterDTO dto)
         {
             // CHECK IF THE EMAIL IS ALREADY REGISTERED
-            var existingUser = await _userManager.FindByEmailAsync(model.Email);
+            var existingUser = await _userManager.FindByEmailAsync(dto.Email);
             if (existingUser != null)
             {
                 // HANDLE THE CASE WHERE THE EMAIL IS ALREADY REGISTERED
@@ -29,61 +30,67 @@ namespace ASP.NET___CRUD.Services
             }
 
             // CREATE A NEW APPLICATIONUSER INSTANCE
-            var user = new ApplicationUser
+            var user = new UserModel
             {
-                UserName = model.UserName,
-                Email = model.Email,
-                PhoneNumber = model.PhoneNumber,
-                Role = model.Role
+                UserName = dto.UserName,
+                Email = dto.Email,
+                PhoneNumber = dto.PhoneNumber,
+                Role = dto.Role
             };
 
             // CHECK IF THE ROLE IS ADMIN AND ALLOW ONLY BASIC FIELDS
-            if (model.Role.Equals("Admin") || model.Role.Equals("CSR"))
+            if (dto.Role.Equals("Admin") || dto.Role.Equals("CSR"))
             {
                 user.IsActive = true;
             }
-            else if (model.Role.Equals("Vendor") || model.Role.Equals("Customer"))
+            else if (dto.Role.Equals("Vendor") || dto.Role.Equals("Customer"))
             {
                 // VENDOR ROLE OR CUSTOMER ROLE
-                user.DateOfBirth = model.DateOfBirth;
-                user.Gender = model.Gender;
-                user.Address = model.Address;
-                user.City = model.City;
-                user.State = model.State;
-                user.PostalCode = model.PostalCode;
+                user.DateOfBirth = dto.DateOfBirth;
+                user.Gender = dto.Gender;
+                user.Address = dto.Address;
+                user.City = dto.City;
+                user.State = dto.State;
+                user.PostalCode = dto.PostalCode;
                 user.IsActive = false;
             }
             
-            if (model.Role.Equals("Vendor"))
+            if (dto.Role.Equals("Vendor"))
             {
                 // VENDOR ROLE: ALLOW ALL FIELDS
-                user.Bio = model.Bio;
-                user.BusinessName = model.BusinessName;
-                user.BusinessLicenseNumber = model.BusinessLicenseNumber;
-                user.PreferredPaymentMethod = model.PreferredPaymentMethod;
+                user.Bio = dto.Bio;
+                user.BusinessName = dto.BusinessName;
+                user.BusinessLicenseNumber = dto.BusinessLicenseNumber;
+                user.PreferredPaymentMethod = dto.PreferredPaymentMethod;
             }
             
 
             // CREATE USER WITH PASSWORD
-            var result = await _userManager.CreateAsync(user, model.Password);
+            var result = await _userManager.CreateAsync(user, dto.Password);
 
-            if (result.Succeeded && !string.IsNullOrWhiteSpace(model.Role))
+            if (result.Succeeded && !string.IsNullOrWhiteSpace(dto.Role))
             {
                 // ASSIGN THE ROLE TO THE USER IF IT'S PROVIDED
-                await _userManager.AddToRoleAsync(user, model.Role);
+                await _userManager.AddToRoleAsync(user, dto.Role);
             }
 
             return result; // RETURN RESULT OF USER CREATION
         }
 
         // AUTHENTICATE A USER AND RETURN A JWT TOKEN
-        public async Task<(string? token, string? refreshToken)> AuthenticateUserAsync(LoginModel model)
+        public async Task<(string? token, string? refreshToken)> AuthenticateUserAsync(LoginDTO dto)
         {
-            // FIND THE USER BY EMAIL
-            var user = await _userManager.FindByEmailAsync(model.Email);
+            // TRY TO FIND THE USER BY USERNAME
+            var user = await _userManager.FindByNameAsync(dto.Email);
+
+            // IF USER NOT FOUND, TRY TO FIND BY EMAIL
+            if (user == null)
+            {
+                user = await _userManager.FindByEmailAsync(dto.Email);
+            }
 
             // CHECK IF THE USER EXISTS AND THE PASSWORD IS CORRECT
-            if (user != null && await _userManager.CheckPasswordAsync(user, model.Password))
+            if (user != null && await _userManager.CheckPasswordAsync(user, dto.Password))
             {
                 // GET THE ROLES ASSOCIATED WITH THE USER
                 var roles = await _userManager.GetRolesAsync(user);
@@ -123,7 +130,7 @@ namespace ASP.NET___CRUD.Services
         }
 
         // VALIDATE THE REFRESH TOKEN
-        private async Task<ApplicationUser?> ValidateRefreshToken(string refreshToken)
+        private async Task<UserModel?> ValidateRefreshToken(string refreshToken)
         {
             // DECODING THE TOKEN TO CHECK EXPIRATION
             var tokenHandler = new JwtSecurityTokenHandler();

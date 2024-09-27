@@ -26,7 +26,7 @@ namespace EAD_Backend_Application__.NET
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
             // 2. ADD IDENTITY WITH ROLE MANAGEMENT
-            builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            builder.Services.AddIdentity<UserModel, IdentityRole>(options =>
             {
                 options.SignIn.RequireConfirmedAccount = true; // OPTIONAL: CONFIRM EMAIL BEFORE LOGIN
             })

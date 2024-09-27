@@ -1,13 +1,13 @@
-﻿namespace EAD_Backend_Application__.NET.Models
+﻿namespace EAD_Backend_Application__.NET.DTOs
 {
-    public class LoginModel
+    public class LoginDTO
     {
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
 
-        public LoginModel()
+        public LoginDTO()
         {
-            
+
         }
     }
 }

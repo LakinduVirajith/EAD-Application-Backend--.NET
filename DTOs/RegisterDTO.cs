@@ -1,12 +1,11 @@
-﻿namespace EAD_Backend_Application__.NET.Models
+﻿namespace EAD_Backend_Application__.NET.DTOs
 {
-    public class UpdateUserModel
+    public class RegisterDTO
     {
-        public string? UserName { get; set; }
-        public string Email { get; set; }  = string.Empty;
-        public string? NewEmail { get; set; }
-        public string? Password { get; set; }
-        public string? PhoneNumber { get; set; }
+        public string UserName { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
+        public string Password { get; set; } = string.Empty;
+        public string PhoneNumber { get; set; } = string.Empty;
 
         public string? ProfileImageUrl { get; set; }
         public string? DateOfBirth { get; set; }
@@ -21,7 +20,12 @@
         public string? BusinessLicenseNumber { get; set; }
         public string? PreferredPaymentMethod { get; set; }
 
-        public string? Role { get; set; }
+        public string Role { get; set; } = string.Empty;
         public bool IsActive { get; set; }
+
+        public RegisterDTO()
+        {
+
+        }
     }
 }

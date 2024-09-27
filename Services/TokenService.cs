@@ -18,7 +18,7 @@ namespace EAD_Backend_Application__.NET.Services
         }
 
         // GENERATE A JWT TOKEN FOR THE USER
-        public string GenerateToken(ApplicationUser user, IList<string> roles)
+        public string GenerateToken(UserModel user, IList<string> roles)
         {
             var claims = new List<Claim>
         {
@@ -46,7 +46,7 @@ namespace EAD_Backend_Application__.NET.Services
         }
 
         // GENERATE A REFRESH TOKEN FOR THE USER
-        public string GenerateRefreshToken(ApplicationUser user)
+        public string GenerateRefreshToken(UserModel user)
         {
             var claims = new List<Claim>
         {
