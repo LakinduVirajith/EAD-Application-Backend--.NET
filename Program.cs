@@ -64,6 +64,7 @@ namespace EAD_Backend_Application__.NET
 
             // 4. DEPENDENCY INJECTION
             builder.Services.AddScoped<IAuthService, AuthService>();
+            builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<TokenService>();
 
             // 5. CONTROLLER & AUTHORIZATION CONFIGURATION
