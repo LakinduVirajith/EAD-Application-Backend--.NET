@@ -26,6 +26,19 @@ namespace EAD_Backend_Application__.NET.Controllers
             return await _productService.CreateProductAsync(dto);
         }
 
+        /// <summary>Allows a vendor to update product image of an existing product.</summary>
+        // PUT: api/v1/product/image
+        [HttpPut("image")]
+        [Authorize(Roles = "Vendor")]
+        public async Task<IActionResult> UpdateProductImage([FromForm] FileUploadDTO dto)
+        {
+            if (dto == null || dto.File.Length == 0)
+            {
+                return new BadRequestObjectResult(new { Status = "Error", Message = "Please provide a valid image file." });
+            }
+            return await _productService.UpdateProductImageAsync(dto.File);
+        }
+
         /// <summary>Allows a vendor to update details of an existing product.</summary>
         // PUT: api/v1/product/update
         [HttpPut("update")]

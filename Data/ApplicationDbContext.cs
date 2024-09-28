@@ -60,6 +60,7 @@ namespace EAD_Backend_Application__.NET.Data
         public DbSet<ProductModel> Products { get; set; } = default!;
         public DbSet<ProductColor> ProductColors { get; set; } = default!;
         public DbSet<ProductSize> ProductSizes { get; set; } = default!;
+        public DbSet<CartItemModel> CartItems { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -74,7 +75,13 @@ namespace EAD_Backend_Application__.NET.Data
                 entity.HasMany(u => u.Products)
                   .WithOne(p => p.User) 
                   .HasForeignKey(p => p.VendorId)
-                  .OnDelete(DeleteBehavior.Cascade);
+                  .OnDelete(DeleteBehavior.Restrict);
+
+                // CONFIGURE RELATIONSHIP WITH CART ITEMS
+                entity.HasMany(u => u.CartItems)
+                      .WithOne(c => c.User)
+                      .HasForeignKey(c => c.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             // CONFIGURE PRODUCT MODEL
@@ -94,6 +101,12 @@ namespace EAD_Backend_Application__.NET.Data
                       .WithOne(s => s.Product)
                       .HasForeignKey(s => s.ProductId)
                       .OnDelete(DeleteBehavior.Cascade);
+
+                // CONFIGURE RELATIONSHIP WITH CART ITEMS
+                entity.HasMany(p => p.CartItems)
+                      .WithOne(c => c.Product)
+                      .HasForeignKey(c => c.ProductId)
+                      .OnDelete(DeleteBehavior.Cascade);
             });
 
             // CONFIGURE PRODUCT COLOR
@@ -108,6 +121,13 @@ namespace EAD_Backend_Application__.NET.Data
             {
                 entity.ToTable("ProductSizes");
                 entity.HasKey(s => s.SizeId);
+            });
+
+            // CONFIGURE CART MODEL
+            modelBuilder.Entity<CartItemModel>(entity =>
+            {
+                entity.ToTable("CartItems");
+                entity.HasKey(c => c.CartId);
             });
         }
 

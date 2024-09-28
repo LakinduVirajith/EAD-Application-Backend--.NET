@@ -2,6 +2,7 @@
 using EAD_Backend_Application__.NET.Models;
 using EAD_Backend_Application__.NET.Services;
 using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
@@ -27,6 +28,12 @@ namespace ASP.NET___CRUD.Services
             {
                 // HANDLE THE CASE WHERE THE EMAIL IS ALREADY REGISTERED
                 return IdentityResult.Failed(new IdentityError { Description = "Email is already in use." });
+            }
+            // VALIDATE THE ROLE
+            if (!dto.Role.Equals("Admin") && !dto.Role.Equals("CSR") &&
+                !dto.Role.Equals("Vendor") && !dto.Role.Equals("Customer"))
+            {
+                return IdentityResult.Failed(new IdentityError { Description = "Invalid role provided." });
             }
 
             // CREATE A NEW APPLICATIONUSER INSTANCE
