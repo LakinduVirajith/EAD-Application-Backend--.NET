@@ -2,17 +2,20 @@
 using EAD_Backend_Application__.NET.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace EAD_Backend_Application__.NET.Services
 {
     public class UserService : IUserService
     {
         private readonly UserManager<UserModel> _userManager;
+        private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly TokenService _tokenService;
 
-        public UserService(UserManager<UserModel> userManager, TokenService tokenService)
+        public UserService(UserManager<UserModel> userManager, IHttpContextAccessor httpContextAccessor, TokenService tokenService)
         {
             _userManager = userManager;
+            _httpContextAccessor = httpContextAccessor;
             _tokenService = tokenService;
         }
 
@@ -78,6 +81,26 @@ namespace EAD_Backend_Application__.NET.Services
 
             // HANDLE FAILURE CASE
             return new ConflictObjectResult(new { Status = "Error", Message = "Failed to deactivate user. Please try again." });
+        }
+
+        public async Task<IActionResult> UpdateUserImageAsync(IFormFile imageFile)
+        {
+            // GET THE EMAIL FROM THE AUTHENTICATION HEADER
+            var email = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Email)?.Value;
+
+            // CHECK IF EMAIL IS NULL
+            if (string.IsNullOrEmpty(email))
+            {
+                return new NotFoundObjectResult(new { Status = "Error", Message = "User not found. Please ensure you are logged in." });
+            }
+
+            // FIND THE USER BY EMAIL
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return new NotFoundObjectResult(new { Status = "Error", Message = "User not found. Please ensure you are logged in." });
+            }
+            return new NotFoundObjectResult(new { Status = "Error", Message = "This feature is currently under development and is not yet implemented." });
         }
 
         public async Task<IActionResult> UpdateUserEmailAsync(UpdateEmailDTO dto)
@@ -158,6 +181,7 @@ namespace EAD_Backend_Application__.NET.Services
             user.UserName = dto.UserName;
             user.PhoneNumber = dto.PhoneNumber;
             user.DateOfBirth = dto.DateOfBirth;
+            user.ProfileImageUrl = dto.ProfileImageUrl;
             user.Gender = dto.Gender;
             user.Address = dto.Address;
             user.City = dto.City;

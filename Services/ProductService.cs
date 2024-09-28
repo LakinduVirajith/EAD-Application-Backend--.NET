@@ -63,7 +63,7 @@ namespace EAD_Backend_Application__.NET.Services
             {
                 _context.Products.Add(product);
                 await _context.SaveChangesAsync();
-                return new OkObjectResult(new { Status = "Success", Message = "Product successfully saved to the database." });
+                return new OkObjectResult(new { Status = "Success", Message = "Product successfully saved to the database.", body = product.ProductId });
             }
             catch (Exception)
             {
@@ -72,6 +72,11 @@ namespace EAD_Backend_Application__.NET.Services
                     StatusCode = StatusCodes.Status500InternalServerError
                 };
             }
+        }
+
+        public async Task<IActionResult> UpdateProductImageAsync(IFormFile imageFile)
+        {
+            return await Task.FromResult(new NotFoundObjectResult(new { Status = "Error", Message = "This feature is currently under development and is not yet implemented." }));
         }
 
         public async Task<IActionResult> UpdateProductAsync(ProductDetailsDTO dto)
@@ -86,6 +91,7 @@ namespace EAD_Backend_Application__.NET.Services
             }
 
             // UPDATE PRODUCT PROPERTIES
+            product.ImageUri = dto.ImageUri;
             product.Name = dto.Name;
             product.Brand = dto.Brand;
             product.Price = dto.Price;

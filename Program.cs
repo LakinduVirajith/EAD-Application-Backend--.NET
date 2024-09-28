@@ -67,6 +67,7 @@ namespace EAD_Backend_Application__.NET
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IProductService, ProductService>();
+            builder.Services.AddScoped<ICartService, CartService>();
             builder.Services.AddScoped<TokenService>();
 
             // 5. CONTROLLER & AUTHORIZATION CONFIGURATION
@@ -85,8 +86,10 @@ namespace EAD_Backend_Application__.NET
                 {
                     Version = "v1",
                     Title = "EAD Backend API",
-                    Description = "API for managing backend operations."
+                    Description = "API for managing and handling backend operations, including user authentication, user management, product management, cart management and more."
                 });
+
+                c.TagActionsBy(api => new List<string> { api.ActionDescriptor.RouteValues["controller"] + " Controllers" });
 
                 // INCLUDE XML COMMENTS IF THEY EXIST
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";

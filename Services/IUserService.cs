@@ -7,6 +7,7 @@ namespace EAD_Backend_Application__.NET.Services
     {
         Task<IActionResult> ActivateUserAsync(string email);
         Task<IActionResult> DeactivateUserAsync(string email);
+        Task<IActionResult> UpdateUserImageAsync(IFormFile imageFile);
         Task<IActionResult> UpdateUserEmailAsync(UpdateEmailDTO dto);
         Task<IActionResult> UpdateUserPasswordAsync(UpdatePasswordDTO dto);
         Task<IActionResult> UpdateUserDetailsAsync(UpdateUserDTO dto);
