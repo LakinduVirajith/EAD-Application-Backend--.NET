@@ -283,6 +283,35 @@ namespace EAD_Backend_Application__.NET.Services
             return new ConflictObjectResult(new { Status = "Error", Message = "Failed to update user details. Please try again." });
         }
 
+        public async Task<IActionResult> CheckUserShippingAsync()
+        {
+            // GET THE EMAIL FROM AUTHENTICATION HEADER
+            var email = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Email)?.Value;
+
+            // CHECK IF EMAIL IS NULL
+            if (string.IsNullOrEmpty(email))
+            {
+                return new NotFoundObjectResult(new { Status = "Error", Message = "User not found. Please ensure you are logged in." });
+            }
+
+            // FIND THE USER BY EMAIL
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return new NotFoundObjectResult(new { Status = "Error", Message = "User not found. Please ensure you are logged in." });
+            }
+
+            // CHECK IF USER HAS COMPLETE SHIPPING DETAILS
+            bool hasShippingDetails = HasCompleteShippingDetails(user);
+
+            return new OkObjectResult(new
+            {
+                Status = "Success",
+                Message = hasShippingDetails ? "User has shipping details." : "User does not have shipping details.",
+                Body = hasShippingDetails
+            });
+        }
+
         public async Task<IActionResult> UpdateUserShippingAsync(UserShippingDetailsDTO dto)
         {
             // GET THE EMAIL FROM AUTHENTICATION HEADER
@@ -511,6 +540,15 @@ namespace EAD_Backend_Application__.NET.Services
 
             // HANDLE FAILURE CASE
             return new ConflictObjectResult(new { Status = "Error", Message = "Failed to delete user. Please try again." });
+        }
+
+        // HELPER METHOD TO CHECK COMPLETE SHIPPING DETAILS
+        private bool HasCompleteShippingDetails(UserModel user)
+        {
+            return !string.IsNullOrEmpty(user.Address) &&
+                   !string.IsNullOrEmpty(user.City) &&
+                   !string.IsNullOrEmpty(user.State) &&
+                   !string.IsNullOrEmpty(user.PostalCode);
         }
     }
 }

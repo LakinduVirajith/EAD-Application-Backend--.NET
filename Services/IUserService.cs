@@ -11,11 +11,13 @@ namespace EAD_Backend_Application__.NET.Services
         Task<IActionResult> UpdateUserEmailAsync(UpdateEmailDTO dto);
         Task<IActionResult> UpdateUserPasswordAsync(UpdatePasswordDTO dto);
         Task<IActionResult> UpdateUserDetailsAsync(UserUpdateDTO dto);
+        Task<IActionResult> CheckUserShippingAsync();
         Task<IActionResult> UpdateUserShippingAsync(UserShippingDetailsDTO dto);
         Task<IActionResult> UpdateUserBioAsync(UserBioDetailsDTO dto);
         Task<ActionResult<UserGetDTO>> GetUserDetailsAsync();
         Task<ActionResult<IEnumerable<UserGetDTO>>> GetUserDetailsAdminAsync(int pageNumber, int pageSize);
         Task<ActionResult<UserUpdateDTO>> GetUserDetailsByEmailAsync(string email);
         Task<IActionResult> DeleteUserAsync(string email);
+        
     }
 }

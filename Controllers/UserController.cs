@@ -75,6 +75,15 @@ namespace EAD_Backend_Application__.NET.Controllers
             return await _userService.UpdateUserDetailsAsync(dto);
         }
 
+        /// <summary>Check an authenticated user if have any shipping details.</summary>
+        // PUT: api/v1/user/check/shipping
+        [HttpPut("check/shipping")]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> CheckUserShipping()
+        {
+            return await _userService.CheckUserShippingAsync();
+        }
+
         /// <summary>Allows an authenticated user to update their shipping details.</summary>
         // PUT: api/v1/user/update/shipping
         [HttpPut("update/shipping")]
