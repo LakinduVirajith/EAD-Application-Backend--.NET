@@ -63,6 +63,7 @@ namespace EAD_Backend_Application__.NET.Data
         public DbSet<CartItemModel> CartItems { get; set; } = default!;
         public DbSet<OrderModel> Orders { get; set; } = default!;
         public DbSet<OrderItemModel> OrderItems { get; set; } = default!;
+        public DbSet<RankingModel> Rankings { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -75,7 +76,7 @@ namespace EAD_Backend_Application__.NET.Data
 
                 // CONFIGURE FOREIGN KEY RELATIONSHIP WITH PRODUCTS
                 entity.HasMany(u => u.Products)
-                  .WithOne(p => p.User) 
+                  .WithOne(p => p.Vendor) 
                   .HasForeignKey(p => p.VendorId)
                   .OnDelete(DeleteBehavior.Restrict);
 
@@ -89,6 +90,12 @@ namespace EAD_Backend_Application__.NET.Data
                 entity.HasMany(u => u.Orders)
                       .WithOne(o => o.User)
                       .HasForeignKey(o => o.CustomerId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // CONFIGURE RELATIONSHIP WITH RANKINGS
+                entity.HasMany(u => u.Rankings)
+                      .WithOne(r => r.Vendor)
+                      .HasForeignKey(r => r.VendorId)
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
@@ -156,6 +163,13 @@ namespace EAD_Backend_Application__.NET.Data
             {
                 entity.ToTable("OrderItems");
                 entity.HasKey(oi => oi.OrderItemId);
+            });
+
+            // CONFIGURE RANKING MODEL
+            modelBuilder.Entity<RankingModel>(entity =>
+            {
+                entity.ToTable("Rankings");
+                entity.HasKey(r => r.RankingId);
             });
         }
 

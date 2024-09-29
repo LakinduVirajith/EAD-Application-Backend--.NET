@@ -31,5 +31,6 @@ namespace EAD_Backend_Application__.NET.Models
         public virtual ICollection<ProductModel> Products { get; set; }
         public virtual ICollection<CartItemModel> CartItems { get; set; }
         public virtual ICollection<OrderModel> Orders { get; set; }
+        public virtual ICollection<RankingModel> Rankings { get; set; }
     }
 }
