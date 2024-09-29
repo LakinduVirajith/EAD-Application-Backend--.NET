@@ -1,5 +1,6 @@
 using ASP.NET___CRUD.Services;
 using EAD_Backend_Application__.NET.Data;
+using EAD_Backend_Application__.NET.Enums;
 using EAD_Backend_Application__.NET.Helpers;
 using EAD_Backend_Application__.NET.Models;
 using EAD_Backend_Application__.NET.Services;
@@ -171,16 +172,22 @@ namespace EAD_Backend_Application__.NET
         private static async Task CreateRoles(IServiceProvider serviceProvider)
         {
             var roleManager = serviceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-            string[] roleNames = { "Admin", "CSR", "Vendor", "Customer" };
             IdentityResult roleResult;
 
-            foreach (var roleName in roleNames)
+            // LOOP THROUGH ENUM VALUES AND CHECK IF ROLES EXIST
+            foreach (var role in Enum.GetValues(typeof(UserRoles)))
             {
-                var roleExist = await roleManager.RoleExistsAsync(roleName);
-                if (!roleExist)
+                var roleName = role.ToString();
+
+                // CHECK IF THE ROLE EXISTS
+                if (!string.IsNullOrEmpty(roleName))
                 {
-                    // CREATE THE ROLES AND SEED THEM TO THE DATABASE
-                    roleResult = await roleManager.CreateAsync(new IdentityRole(roleName));
+                    var roleExist = await roleManager.RoleExistsAsync(roleName);
+                    if (!roleExist)
+                    {
+                        // CREATE THE ROLE IF IT DOES NOT EXIST
+                        roleResult = await roleManager.CreateAsync(new IdentityRole(roleName));
+                    }
                 }
             }
         }

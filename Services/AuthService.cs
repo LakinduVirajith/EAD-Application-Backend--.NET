@@ -11,9 +11,11 @@ namespace ASP.NET___CRUD.Services
 {
     public class AuthService : IAuthService
     {
+        // DEPENDENCIES INJECTED THROUGH CONSTRUCTOR
         private readonly UserManager<UserModel> _userManager;
         private readonly TokenService _tokenService;
 
+        // CONSTRUCTOR TO INJECT DEPENDENCIES
         public AuthService(UserManager<UserModel> userManager, TokenService tokenService)
         {
             _userManager = userManager;

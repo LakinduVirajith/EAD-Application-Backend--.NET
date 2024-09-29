@@ -1,13 +1,14 @@
-﻿namespace EAD_Backend_Application__.NET.DTOs
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace EAD_Backend_Application__.NET.DTOs
 {
     public class UpdateEmailDTO
     {
-        public string CurrentEmail { get; set; } = string.Empty;
-        public string NewEmail { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Current Email is required.")]
+        public required string CurrentEmail { get; set; }
 
-        public UpdateEmailDTO()
-        {
-
-        }
+        [Required(ErrorMessage = "New Email is required.")]
+        [EmailAddress(ErrorMessage = "Invalid New Email format.")]
+        public required string NewEmail { get; set; }
     }
 }

@@ -3,7 +3,7 @@
         {
             "UserName": "admin_user",
             "Email": "admin@gmail.com",
-            "Password": "Admin123",
+            "Password": "Admin@123",
             "PhoneNumber": "1234567890",
             "ProfileImageUrl": "https://example.com/profiles/admin.jpg",
             "DateOfBirth": "1985-07-15",
@@ -13,7 +13,7 @@
         {
             "UserName": "csr_user",
             "Email": "csr@gmail.com",
-            "Password": "CSR123",
+            "Password": "CSR@123",
             "PhoneNumber": "2345678901",
             "ProfileImageUrl": "https://example.com/profiles/csr.jpg",
             "DateOfBirth": "1990-03-22",
@@ -23,7 +23,7 @@
         {
             "UserName": "vendor_user",
             "Email": "vendor@gmail.com",
-            "Password": "Vendor123",
+            "Password": "Vendor@123",
             "PhoneNumber": "3456789012",
             "ProfileImageUrl": "https://example.com/profiles/vendor.jpg",
             "DateOfBirth": "1980-10-30",
@@ -33,7 +33,7 @@
         {
             "UserName": "customer_user",
             "Email": "customer@gmail.com",
-            "Password": "Customer123",
+            "Password": "Customer@123",
             "PhoneNumber": "4567890123",
             "ProfileImageUrl": "https://example.com/profiles/customer.jpg",
             "DateOfBirth": "1995-05-10",

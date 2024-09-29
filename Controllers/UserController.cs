@@ -2,7 +2,6 @@
 using EAD_Backend_Application__.NET.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
 
 namespace EAD_Backend_Application__.NET.Controllers
 {
@@ -30,6 +29,7 @@ namespace EAD_Backend_Application__.NET.Controllers
         /// <summary>Allows anyone to deactivate a user account by their email address.</summary>
         // PUT: api/v1/user/deactivate/{email}
         [HttpPut("deactivate/{email}")]
+        [Authorize]
         public async Task<IActionResult> DeactivateUser(string email)
         {
             return await _userService.DeactivateUserAsync(email);
