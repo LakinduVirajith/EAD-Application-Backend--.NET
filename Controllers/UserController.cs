@@ -70,9 +70,54 @@ namespace EAD_Backend_Application__.NET.Controllers
         // PUT: api/v1/user/update/details
         [HttpPut("update/details")]
         [Authorize]
-        public async Task<IActionResult> UpdateUserDetails(UpdateUserDTO dto)
+        public async Task<IActionResult> UpdateUserDetails(UserUpdateDTO dto)
         {
             return await _userService.UpdateUserDetailsAsync(dto);
+        }
+
+        /// <summary>Allows an authenticated user to update their shipping details.</summary>
+        // PUT: api/v1/user/update/shipping
+        [HttpPut("update/shipping")]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> UpdateUserShipping(UserShippingDetailsDTO dto)
+        {
+            return await _userService.UpdateUserShippingAsync(dto);
+        }
+
+        /// <summary>Allows an authenticated user to update their bio details.</summary>
+        // PUT: api/v1/user/update/bio
+        [HttpPut("update/bio")]
+        [Authorize(Roles = "Vendor")]
+        public async Task<IActionResult> UpdateUserBio(UserBioDetailsDTO dto)
+        {
+            return await _userService.UpdateUserBioAsync(dto);
+        }
+
+        /// <summary>Retrieves the authenticated user's profile details.</summary>
+        // GET: api/v1/user/details
+        [HttpGet("details")]
+        [Authorize]
+        public async Task<ActionResult<UserGetDTO>> GetUserDetails()
+        {
+            return await _userService.GetUserDetailsAsync();
+        }
+
+        /// <summary>Retrieves user details for admin or CSR users with pagination support.</summary>
+        // GET: api/v1/user/details/admin
+        [HttpGet("details/admin")]
+        [Authorize(Roles = "Admin, CSR")]
+        public async Task<ActionResult<IEnumerable<UserGetDTO>>> GetUserDetailsAdmin(int pageNumber, int pageSize)
+        {
+            return await _userService.GetUserDetailsAdminAsync(pageNumber, pageSize);
+        }
+
+        /// <summary>Retrieves user details based on the provided email address for admin or CSR users.</summary>
+        // GET: api/v1/user/details/{email}
+        [HttpGet("details/{email}")]
+        [Authorize(Roles = "Admin, CSR")]
+        public async Task<ActionResult<UserUpdateDTO>> GetUserDetailsByEmail(string email)
+        {
+            return await _userService.GetUserDetailsByEmailAsync(email);
         }
 
         /// <summary>Allows an Admin to delete a user account by their email address.</summary>

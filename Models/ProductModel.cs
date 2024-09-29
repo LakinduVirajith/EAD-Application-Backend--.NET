@@ -50,11 +50,6 @@ namespace EAD_Backend_Application__.NET.Models
         // FOREIGN KEY TO VENDOR
         [Required]
         public string VendorId { get; set; } = string.Empty;
-        public virtual UserModel User { get; set; } = new UserModel();
-
-        public ProductModel()
-        {
-            
-        }
+        public virtual UserModel User { get; set; }
     }
 }

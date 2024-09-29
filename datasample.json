@@ -2,79 +2,55 @@
     [
         {
             "UserName": "admin_user",
-            "Email": "admin@example.com",
-            "Password": "AdminPass123",
-            "PhoneNumber": "123-456-7890",
+            "Email": "admin@gmail.com",
+            "Password": "Admin123",
+            "PhoneNumber": "1234567890",
             "ProfileImageUrl": "https://example.com/profiles/admin.jpg",
             "DateOfBirth": "1985-07-15",
             "Gender": "Male",
-            "Address": "123 Admin St.",
-            "City": "Admin City",
-            "State": "Admin State",
-            "PostalCode": "12345",
-            "Bio": "Administrator responsible for managing the system.",
-            "BusinessName": null,
-            "BusinessLicenseNumber": null,
-            "PreferredPaymentMethod": null,
-            "Role": "Admin",
-            "IsActive": true
+            "Role": "Admin"
         },
         {
             "UserName": "csr_user",
-            "Email": "csr@example.com",
-            "Password": "CSRPass123",
-            "PhoneNumber": "234-567-8901",
+            "Email": "csr@gmail.com",
+            "Password": "CSR123",
+            "PhoneNumber": "2345678901",
             "ProfileImageUrl": "https://example.com/profiles/csr.jpg",
             "DateOfBirth": "1990-03-22",
             "Gender": "Female",
-            "Address": "456 CSR Blvd.",
-            "City": "CSR Town",
-            "State": "CSR State",
-            "PostalCode": "67890",
-            "Bio": "Customer service representative, handling support requests.",
-            "BusinessName": null,
-            "BusinessLicenseNumber": null,
-            "PreferredPaymentMethod": null,
-            "Role": "CSR",
-            "IsActive": true
+            "Role": "CSR"
         },
         {
             "UserName": "vendor_user",
-            "Email": "vendor@example.com",
-            "Password": "VendorPass123",
-            "PhoneNumber": "345-678-9012",
+            "Email": "vendor@gmail.com",
+            "Password": "Vendor123",
+            "PhoneNumber": "3456789012",
             "ProfileImageUrl": "https://example.com/profiles/vendor.jpg",
             "DateOfBirth": "1980-10-30",
             "Gender": "Male",
-            "Address": "789 Vendor Rd.",
-            "City": "Vendor City",
-            "State": "Vendor State",
-            "PostalCode": "13579",
-            "Bio": "Supplier providing products to the platform.",
-            "BusinessName": "Vendor Co.",
-            "BusinessLicenseNumber": "VEN123456",
-            "PreferredPaymentMethod": "Bank Transfer",
-            "Role": "Vendor",
-            "IsActive": true
+            "Role": "Vendor"
         },
         {
             "UserName": "customer_user",
-            "Email": "customer@example.com",
-            "Password": "CustomerPass123",
-            "PhoneNumber": "456-789-0123",
+            "Email": "customer@gmail.com",
+            "Password": "Customer123",
+            "PhoneNumber": "4567890123",
             "ProfileImageUrl": "https://example.com/profiles/customer.jpg",
             "DateOfBirth": "1995-05-10",
             "Gender": "Female",
+            "Role": "Customer"
+        },
+        {
             "Address": "123 Customer Ln.",
             "City": "Customer City",
             "State": "Customer State",
-            "PostalCode": "24680",
+            "PostalCode": "24680"
+        },
+        {
             "Bio": "Regular customer of the platform.",
             "BusinessName": null,
             "BusinessLicenseNumber": null,
-            "PreferredPaymentMethod": "Credit Card",
-            "Role": "Customer",
-            "IsActive": true
+            "PreferredPaymentMethod": "Credit Card"
         }
     ],
 

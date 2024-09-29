@@ -28,16 +28,11 @@ namespace EAD_Backend_Application__.NET.Models
         // FOREIGN KEY TO PRODUCT
         [Required]
         public string ProductId { get; set; } = string.Empty;
-        public virtual ProductModel Product { get; set; } = new ProductModel();
+        public virtual ProductModel Product { get; set; }
 
         // FOREIGN KEY TO CUSTOMER
         [Required]
         public string UserId { get; set; } = string.Empty;
-        public virtual UserModel User { get; set; } = new UserModel();
-
-        public CartItemModel()
-        {
-            
-        }
+        public virtual UserModel User { get; set; }
     }
 }

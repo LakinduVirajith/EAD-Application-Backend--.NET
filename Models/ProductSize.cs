@@ -13,11 +13,6 @@ namespace EAD_Backend_Application__.NET.Models
 
         // FOREIGN KEY TO PRODUCT
         public string ProductId { get; set; } = string.Empty;
-        public virtual ProductModel Product { get; set; } = new ProductModel();
-
-        public ProductSize()
-        {
-            
-        }
+        public virtual ProductModel Product { get; set; }
     }
 }

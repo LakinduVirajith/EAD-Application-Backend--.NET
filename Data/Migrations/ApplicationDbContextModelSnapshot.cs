@@ -61,6 +61,103 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
                     b.ToTable("CartItems", (string)null);
                 });
 
+            modelBuilder.Entity("EAD_Backend_Application__.NET.Models.OrderItemModel", b =>
+                {
+                    b.Property<string>("OrderItemId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageUri")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OrderId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<double>("Price")
+                        .HasColumnType("float");
+
+                    b.Property<string>("ProductId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ProductName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Size")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("OrderItemId");
+
+                    b.HasIndex("OrderId");
+
+                    b.ToTable("OrderItems", (string)null);
+                });
+
+            modelBuilder.Entity("EAD_Backend_Application__.NET.Models.OrderModel", b =>
+                {
+                    b.Property<string>("OrderId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CancellationReason")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("City")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CustomerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("OrderDate")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<string>("PhoneNumber")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PostalCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("State")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<double>("TotalOrderPrice")
+                        .HasColumnType("float");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("OrderId");
+
+                    b.HasIndex("CustomerId");
+
+                    b.ToTable("Orders", (string)null);
+                });
+
             modelBuilder.Entity("EAD_Backend_Application__.NET.Models.ProductColor", b =>
                 {
                     b.Property<int>("ColorId")
@@ -386,10 +483,12 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
                         .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("DateOfBirth")
+                        .IsRequired()
                         .HasMaxLength(10)
                         .HasColumnType("nvarchar(10)");
 
                     b.Property<string>("Gender")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsActive")
@@ -433,6 +532,28 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Product");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("EAD_Backend_Application__.NET.Models.OrderItemModel", b =>
+                {
+                    b.HasOne("EAD_Backend_Application__.NET.Models.OrderModel", "Order")
+                        .WithMany("OrderItems")
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("EAD_Backend_Application__.NET.Models.OrderModel", b =>
+                {
+                    b.HasOne("EAD_Backend_Application__.NET.Models.UserModel", "User")
+                        .WithMany("Orders")
+                        .HasForeignKey("CustomerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -530,6 +651,11 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("EAD_Backend_Application__.NET.Models.OrderModel", b =>
+                {
+                    b.Navigation("OrderItems");
+                });
+
             modelBuilder.Entity("EAD_Backend_Application__.NET.Models.ProductModel", b =>
                 {
                     b.Navigation("CartItems");
@@ -542,6 +668,8 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
             modelBuilder.Entity("EAD_Backend_Application__.NET.Models.UserModel", b =>
                 {
                     b.Navigation("CartItems");
+
+                    b.Navigation("Orders");
 
                     b.Navigation("Products");
                 });
