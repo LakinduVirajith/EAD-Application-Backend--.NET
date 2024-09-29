@@ -191,8 +191,8 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
                 columns: table => new
                 {
                     OrderId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    OrderDate = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    OrderDate = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     TotalOrderPrice = table.Column<double>(type: "float", nullable: false),
                     PhoneNumber = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     UserName = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -242,6 +242,28 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Rankings",
+                columns: table => new
+                {
+                    RankingId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    Comment = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Rating = table.Column<int>(type: "int", nullable: false),
+                    CustomerId = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    CreatedAt = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    VendorId = table.Column<string>(type: "nvarchar(450)", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Rankings", x => x.RankingId);
+                    table.ForeignKey(
+                        name: "FK_Rankings_Users_VendorId",
+                        column: x => x.VendorId,
+                        principalTable: "Users",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "OrderItems",
                 columns: table => new
                 {
@@ -253,6 +275,7 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     Size = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Color = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     OrderId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
@@ -405,6 +428,11 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
                 name: "IX_ProductSizes_ProductId",
                 table: "ProductSizes",
                 column: "ProductId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Rankings_VendorId",
+                table: "Rankings",
+                column: "VendorId");
         }
 
         /// <inheritdoc />
@@ -436,6 +464,9 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
 
             migrationBuilder.DropTable(
                 name: "ProductSizes");
+
+            migrationBuilder.DropTable(
+                name: "Rankings");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");

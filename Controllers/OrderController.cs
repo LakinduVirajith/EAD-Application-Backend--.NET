@@ -26,13 +26,22 @@ namespace EAD_Backend_Application__.NET.Controllers
             return await _orderService.AddOrderAsync(date, itemDTOs);
         }
 
-        /// <summary> Allows vendors to change the status of an order.</summary>
+        /// <summary> Allows to change the status of an order.</summary>
         // PUT: api/v1/order/status
         [HttpPut("status")]
-        [Authorize(Roles = "Vendor")]
+        [Authorize(Roles = "Admin, CSR, Vendor")]
         public async Task<IActionResult> OrderStatus(string orderId, string status)
         {
             return await _orderService.OrderStatusAsync(orderId, status);
+        }
+
+        /// <summary> Allows vendors to change the status of an order items.</summary>
+        // PUT: api/v1/order/item/status
+        [HttpPut("item/status")]
+        [Authorize(Roles = "Vendor")]
+        public async Task<IActionResult> OrderItemStatus(string orderItemId, string status)
+        {
+            return await _orderService.OrderItemStatusAsync(orderItemId, status);
         }
 
         /// <summary>Enables authorized users to cancel an order.</summary>

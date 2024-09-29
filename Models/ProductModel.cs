@@ -17,7 +17,7 @@ namespace EAD_Backend_Application__.NET.Models
         public int StockQuantity { get; set; } = 0;
 
         // INDICATES WHETHER THE PRODUCT IS VISIBLE TO CUSTOMERS (FOR SOFT DELETE)
-        public bool IsVisible { get; set; } = true;
+        public bool IsVisible { get; set; } = false;
 
         // NAVIGATION PROPERTIES FOR COLOR AND SIZE
         public virtual ICollection<ProductSize> Sizes { get; set; } = new List<ProductSize>();

@@ -2,17 +2,14 @@
 {
     public class OrderItemDetailsDTO
     {
-        public string ProductId { get; set; } = string.Empty;
-        public string ProductName { get; set; } = string.Empty;
+        public required string OrderItemId { get; set; }
+        public required string ProductId { get; set; }
+        public required string ProductName { get; set; }
         public string? ImageResId { get; set; }
-        public Double Price { get; set; }
-        public string Quantity { get; set; } = string.Empty;
-        public string Size { get; set; } = string.Empty;
-        public string Color { get; set; } = string.Empty;
-
-        public OrderItemDetailsDTO()
-        {
-            
-        }
+        public required Double Price { get; set; }
+        public required string Quantity { get; set; }
+        public required string Size { get; set; }
+        public required string Color { get; set; }
+        public required string Status { get; set; }
     }
 }

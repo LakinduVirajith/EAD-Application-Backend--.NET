@@ -1,15 +1,20 @@
-﻿namespace EAD_Backend_Application__.NET.DTOs
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace EAD_Backend_Application__.NET.DTOs
 {
     public class OrderItemDTO
     {
-        public string ProductId { get; set; } = string.Empty;
-        public int Quantity { get; set; } = 0;
-        public string Size { get; set; } = string.Empty;
-        public string Color { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Product Id is required.")]
+        public required string ProductId { get; set; }
 
-        public OrderItemDTO()
-        {
-            
-        }
+        [Required(ErrorMessage = "Product Id is required.")]
+        [Range(0, int.MaxValue, ErrorMessage = "Quantity must be a non-negative integer.")]
+        public required int Quantity { get; set; } = 0;
+
+        [Required(ErrorMessage = "Product Size is required.")]
+        public required string Size { get; set; }
+
+        [Required(ErrorMessage = "Product Color is required.")]
+        public required string Color { get; set; }
     }
 }

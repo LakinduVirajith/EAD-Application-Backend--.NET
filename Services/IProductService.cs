@@ -11,8 +11,12 @@ namespace EAD_Backend_Application__.NET.Services
         Task<IActionResult> UpdateProductStockAsync(ProductStockDTO dto);
         Task<ActionResult<IEnumerable<ProductDTO>>> GetAllProductsAsync(int pageNumber, int pageSize);
         Task<ActionResult<IEnumerable<ProductDTO>>> SearchProductsAsync(string searchValue, int pageNumber, int pageSize);
+        Task<ActionResult<IEnumerable<ProductDTO>>> SearchProductCategoryAsync(string category, int pageNumber, int pageSize);
         Task<ActionResult<IEnumerable<ProductDTO>>> GetProductsByVendorAsync(int pageNumber, int pageSize);
         Task<ActionResult<ProductDetailsDTO>> GetProductAsync(string productID);
         Task<IActionResult> DeleteProductAsync(string productID);
+        Task<ActionResult<IEnumerable<ProductDTO>>> GetActiveProductAsync(int pageNumber, int pageSize);
+        Task<ActionResult<IEnumerable<ProductDTO>>> GetInactiveProductAsync(int pageNumber, int pageSize);
+        Task<IActionResult> UpdateProductStatusAsync(string productID, bool status);
     }
 }

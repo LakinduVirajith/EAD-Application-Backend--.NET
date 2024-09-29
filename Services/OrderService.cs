@@ -75,7 +75,6 @@ namespace EAD_Backend_Application__.NET.Services
                 PostalCode = user.PostalCode,
                 TotalOrderPrice = 0,
                 CustomerId = user.Id,
-                User = user
             };
 
             // MAP EACH ITEM DTO TO ORDER ITEM MODEL
@@ -94,8 +93,8 @@ namespace EAD_Backend_Application__.NET.Services
                     Quantity = itemDTO.Quantity,
                     Size = itemDTO.Size,
                     Color = itemDTO.Color,
+                    Status = OrderStatus.Pending.ToString(),
                     OrderId = order.OrderId,
-                    Order = order
                 };
 
                 // CALCULATE TOTAL PRICE FOR THIS ORDER ITEM
@@ -134,7 +133,7 @@ namespace EAD_Backend_Application__.NET.Services
                 var order = await _context.Orders.FindAsync(orderId);
                 if (order == null)
                 {
-                    return new NotFoundObjectResult(new { Status = "Error", Message = "Order not found." });
+                    return new NotFoundObjectResult(new { Status = "Error", Message = "No orders were found for the provided order Id" });
                 }
 
                 // Attempt to parse the status to an OrderStatus enum
@@ -157,6 +156,50 @@ namespace EAD_Backend_Application__.NET.Services
             }
         }
 
+        public async Task<IActionResult> OrderItemStatusAsync(string orderItemId, string status)
+        {
+            try
+            {
+                // FIND THE ORDER ITEM BY ID
+                var orderItem = await _context.OrderItems.FindAsync(orderItemId);
+                if (orderItem == null)
+                {
+                    return new NotFoundObjectResult(new { Status = "Error", Message = "No order items were found for the provided order item Id." });
+                }
+
+                // ATTEMPT TO PARSE THE STATUS TO AN ORDERSSTATUS ENUM
+                if (!Enum.TryParse<OrderStatus>(status, true, out var orderItemStatus))
+                {
+                    return new BadRequestObjectResult(new { Status = "Error", Message = "Invalid order item status provided." });
+                }
+
+                // UPDATE ORDER ITEM STATUS
+                orderItem.Status = status;
+
+                // SAVE CHANGES TO THE DATABASE
+                await _context.SaveChangesAsync();
+
+                // CHECK IF THE ORDER SHOULD BE MARKED AS DELIVERED
+                var order = await _context.Orders.Include(o => o.OrderItems).FirstOrDefaultAsync(o => o.OrderId == orderItem.OrderId);
+                if (order != null && order.OrderItems.All(oi => oi.Status == OrderStatus.Delivered.ToString()))
+                {
+                    // IF ALL ORDER ITEMS ARE DELIVERED, UPDATE THE ORDER STATUS
+                    order.Status = OrderStatus.Delivered.ToString();
+                    await _context.SaveChangesAsync();
+                }
+
+                return new OkObjectResult(new { Status = "Success", Message = "Order item status updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                // HANDLE UNEXPECTED ERRORS
+                return new ObjectResult(new { Status = "Error", Message = "An unexpected error occurred while updating the order item status. Please try again later.", Body = ex.Message })
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError
+                };
+            }
+        }
+
         public async Task<IActionResult> OrderCancellationAsync(OrderCancellationDTO dto)
         {
             try
@@ -164,7 +207,7 @@ namespace EAD_Backend_Application__.NET.Services
                 var order = await _context.Orders.FindAsync(dto.OrderId);
                 if (order == null)
                 {
-                    return new NotFoundObjectResult(new { Status = "Error", Message = "Order not found." });
+                    return new NotFoundObjectResult(new { Status = "Error", Message = "No orders were found for the provided order Id." });
                 }
 
                 order.CancellationReason = dto.CancellationReason;
@@ -212,7 +255,7 @@ namespace EAD_Backend_Application__.NET.Services
                 var orderDTOs = orders.Select(order => new OrderDTO
                 {
                     OrderId = order.OrderId,
-                    ProductImageResId = order.OrderItems.FirstOrDefault()?.ImageUri,
+                    ImageUri = order.OrderItems.FirstOrDefault()?.ImageUri,
                     OrderDate = order.OrderDate,
                     Status = order.Status,
                     TotalOrderPrice = order.TotalOrderPrice,
@@ -280,7 +323,7 @@ namespace EAD_Backend_Application__.NET.Services
                 var orderDTOs = orders.Select(order => new OrderDTO
                 {
                     OrderId = order.OrderId,
-                    ProductImageResId = order.OrderItems.FirstOrDefault()?.ImageUri,
+                    ImageUri = order.OrderItems.FirstOrDefault()?.ImageUri,
                     OrderDate = order.OrderDate,
                     Status = order.Status,
                     TotalOrderPrice = order.TotalOrderPrice,
@@ -315,7 +358,7 @@ namespace EAD_Backend_Application__.NET.Services
                 var orderDTOs = orders.Select(order => new OrderDTO
                 {
                     OrderId = order.OrderId,
-                    ProductImageResId = order.OrderItems.FirstOrDefault()?.ImageUri,
+                    ImageUri = order.OrderItems.FirstOrDefault()?.ImageUri,
                     OrderDate = order.OrderDate,
                     Status = order.Status,
                     TotalOrderPrice = order.TotalOrderPrice,
@@ -344,7 +387,7 @@ namespace EAD_Backend_Application__.NET.Services
                 // Check if the order exists
                 if (order == null)
                 {
-                    return new NotFoundObjectResult(new { Status = "Error", Message = "Order not found." });
+                    return new NotFoundObjectResult(new { Status = "Error", Message = "No orders were found for the provided order Id" });
                 }
 
                 // Map the order to OrderDetailsDTO
@@ -362,13 +405,15 @@ namespace EAD_Backend_Application__.NET.Services
                     PostalCode = order.PostalCode,
                     orderItemDetails = order.OrderItems.Select(oi => new OrderItemDetailsDTO
                     {
+                        OrderItemId = oi.OrderItemId,
                         ProductId = oi.ProductId,
                         ProductName = oi.ProductName,
                         ImageResId = oi.ImageUri,
                         Price = oi.Price,
                         Quantity = oi.Quantity.ToString(),
                         Size = oi.Size,
-                        Color = oi.Color
+                        Color = oi.Color,
+                        Status = OrderStatus.Pending.ToString(),
                     }).ToList()
                 };
 
