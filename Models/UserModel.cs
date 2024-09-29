@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.ComponentModel.DataAnnotations;
 
 namespace EAD_Backend_Application__.NET.Models
@@ -6,13 +7,11 @@ namespace EAD_Backend_Application__.NET.Models
     public class UserModel : IdentityUser
     {
         // CUSTOMER SPECIFIC FIELDS
-        [StringLength(40, MinimumLength = 5, ErrorMessage = "Image Uri must be between 5 and 40 characters.")]
         public string? ProfileImageUrl { get; set; }
 
-        [StringLength(10, MinimumLength = 10, ErrorMessage = "Date of Birth must be in 'yyyy-MM-dd' format.")]
-        public string? DateOfBirth { get; set; }
+        public required string DateOfBirth { get; set; }
 
-        public string? Gender { get; set; }
+        public required string Gender { get; set; }
 
         [StringLength(100, MinimumLength = 4, ErrorMessage = "Address must be between 4 and 100 characters long.")]
         public string? Address { get; set; }
@@ -41,16 +40,13 @@ namespace EAD_Backend_Application__.NET.Models
 
         // COMMON FIELDS FOR ALL ADMIN, CSR, VENDORS AND CUSTOMER
         [Required]
-        public string Role { get; set; } = string.Empty;
+        public required string Role { get; set; }
         [Required]
-        public bool IsActive { get; set; }
+        public required bool IsActive { get; set; }
 
         // NAVIGATION PROPERTY FOR PRODUCTS PUBLISHED BY THE VENDOR
-        public virtual ICollection<ProductModel> Products { get; set; } = new List<ProductModel>();
-        public virtual ICollection<CartItemModel> CartItems { get; set; } = new List<CartItemModel>();
-        public UserModel()
-        {
-            
-        }
+        public virtual ICollection<ProductModel> Products { get; set; }
+        public virtual ICollection<CartItemModel> CartItems { get; set; }
+        public virtual ICollection<OrderModel> Orders { get; set; }
     }
 }

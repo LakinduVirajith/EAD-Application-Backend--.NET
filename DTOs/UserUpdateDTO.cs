@@ -1,16 +1,16 @@
 ﻿namespace EAD_Backend_Application__.NET.DTOs
 {
-    public class UpdateUserDTO
+    public class UserUpdateDTO
     {
         public string? UserName { get; set; }
-        public string Email { get; set; } = string.Empty;
+        public string? Email { get; set; }
         public string? NewEmail { get; set; }
         public string? Password { get; set; }
         public string? PhoneNumber { get; set; }
 
         public string? ProfileImageUrl { get; set; }
-        public string? DateOfBirth { get; set; }
-        public string? Gender { get; set; }
+        public required string DateOfBirth { get; set; }
+        public required string Gender { get; set; }
         public string? Address { get; set; }
         public string? City { get; set; }
         public string? State { get; set; }
@@ -21,7 +21,7 @@
         public string? BusinessLicenseNumber { get; set; }
         public string? PreferredPaymentMethod { get; set; }
 
-        public string? Role { get; set; }
-        public bool IsActive { get; set; }
+        public required string Role { get; set; }
+        public required bool IsActive { get; set; }
     }
 }

@@ -68,6 +68,7 @@ namespace EAD_Backend_Application__.NET
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IProductService, ProductService>();
             builder.Services.AddScoped<ICartService, CartService>();
+            builder.Services.AddScoped<IOrderService, OrderService>();
             builder.Services.AddScoped<TokenService>();
 
             // 5. CONTROLLER & AUTHORIZATION CONFIGURATION

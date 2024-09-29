@@ -1,4 +1,5 @@
 ﻿using EAD_Backend_Application__.NET.DTOs;
+using EAD_Backend_Application__.NET.Enums;
 using EAD_Backend_Application__.NET.Models;
 using EAD_Backend_Application__.NET.Services;
 using Microsoft.AspNetCore.Identity;
@@ -19,21 +20,27 @@ namespace ASP.NET___CRUD.Services
             _tokenService = tokenService;
         }
 
-        // REGISTER A NEW USER AND ASSIGN A ROLE
         public async Task<IdentityResult> RegisterUserAsync(RegisterDTO dto)
         {
             // CHECK IF THE EMAIL IS ALREADY REGISTERED
             var existingUser = await _userManager.FindByEmailAsync(dto.Email);
             if (existingUser != null)
             {
-                // HANDLE THE CASE WHERE THE EMAIL IS ALREADY REGISTERED
-                return IdentityResult.Failed(new IdentityError { Description = "Email is already in use." });
+                return IdentityResult.Failed(new IdentityError { Code = "409", Description = "Email is already in use." });
             }
-            // VALIDATE THE ROLE
-            if (!dto.Role.Equals("Admin") && !dto.Role.Equals("CSR") &&
-                !dto.Role.Equals("Vendor") && !dto.Role.Equals("Customer"))
+
+            // CHECK IF THE USERNAME IS ALREADY REGISTERED
+            var existingUserByUsername = await _userManager.FindByNameAsync(dto.UserName);
+            if (existingUserByUsername != null)
             {
-                return IdentityResult.Failed(new IdentityError { Description = "Invalid role provided." });
+                return IdentityResult.Failed(new IdentityError { Code = "409", Description = "Username is already in use." });
+            }
+
+            // VALIDATE THE ROLE
+            var validRoles = Enum.GetNames(typeof(UserRoles));
+            if (!validRoles.Contains(dto.Role))
+            {
+                return IdentityResult.Failed(new IdentityError { Code = "400", Description = "Invalid role provided." });
             }
 
             // CREATE A NEW APPLICATIONUSER INSTANCE
@@ -42,49 +49,37 @@ namespace ASP.NET___CRUD.Services
                 UserName = dto.UserName,
                 Email = dto.Email,
                 PhoneNumber = dto.PhoneNumber,
-                Role = dto.Role
+                DateOfBirth = dto.DateOfBirth,
+                Gender = dto.Gender,
+                Role = dto.Role,
+                IsActive = true
             };
 
-            // CHECK IF THE ROLE IS ADMIN AND ALLOW ONLY BASIC FIELDS
-            if (dto.Role.Equals("Admin") || dto.Role.Equals("CSR"))
+            // IF VENDOR ROLE OR CUSTOMER
+            if (dto.Role.Equals("Vendor") || dto.Role.Equals("Customer"))
             {
-                user.IsActive = true;
-            }
-            else if (dto.Role.Equals("Vendor") || dto.Role.Equals("Customer"))
-            {
-                // VENDOR ROLE OR CUSTOMER ROLE
-                user.DateOfBirth = dto.DateOfBirth;
-                user.Gender = dto.Gender;
-                user.Address = dto.Address;
-                user.City = dto.City;
-                user.State = dto.State;
-                user.PostalCode = dto.PostalCode;
                 user.IsActive = false;
             }
-            
-            if (dto.Role.Equals("Vendor"))
+
+            try
             {
-                // VENDOR ROLE: ALLOW ALL FIELDS
-                user.Bio = dto.Bio;
-                user.BusinessName = dto.BusinessName;
-                user.BusinessLicenseNumber = dto.BusinessLicenseNumber;
-                user.PreferredPaymentMethod = dto.PreferredPaymentMethod;
+                // CREATE USER WITH PASSWORD
+                var result = await _userManager.CreateAsync(user, dto.Password);
+
+                if (result.Succeeded && !string.IsNullOrWhiteSpace(dto.Role))
+                {
+                    // ASSIGN THE ROLE TO THE USER IF IT'S PROVIDED
+                    await _userManager.AddToRoleAsync(user, dto.Role);
+                }
+
+                return result;
             }
-            
-
-            // CREATE USER WITH PASSWORD
-            var result = await _userManager.CreateAsync(user, dto.Password);
-
-            if (result.Succeeded && !string.IsNullOrWhiteSpace(dto.Role))
+            catch (Exception)
             {
-                // ASSIGN THE ROLE TO THE USER IF IT'S PROVIDED
-                await _userManager.AddToRoleAsync(user, dto.Role);
-            }
-
-            return result; // RETURN RESULT OF USER CREATION
+                return IdentityResult.Failed(new IdentityError { Code = "500", Description = "User registration failed due to an unexpected error." });
+            } 
         }
 
-        // AUTHENTICATE A USER AND RETURN A JWT TOKEN
         public async Task<(string? token, string? refreshToken)> AuthenticateUserAsync(LoginDTO dto)
         {
             // TRY TO FIND THE USER BY USERNAME
@@ -116,7 +111,6 @@ namespace ASP.NET___CRUD.Services
             return (null, null);
         }
 
-        // VALIDATE THE REFRESH TOKEN AND GENERATE NEW TOKENS
         public async Task<(string? token, string? refreshToken)> RefreshTokenAsync(string refreshToken)
         {
             // VALIDATE THE REFRESH TOKEN AND CHECK ITS EXPIRATION
@@ -160,7 +154,6 @@ namespace ASP.NET___CRUD.Services
             }
             catch
             {
-                // HANDLE TOKEN VALIDATION EXCEPTIONS (E.G., INVALID TOKEN)
                 return null;
             }
         }

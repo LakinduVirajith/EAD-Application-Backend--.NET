@@ -2,6 +2,7 @@
 using EAD_Backend_Application__.NET.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace EAD_Backend_Application__.NET.Services
@@ -166,15 +167,22 @@ namespace EAD_Backend_Application__.NET.Services
             return new ConflictObjectResult(new { Status = "Error", Message = "Failed to update password. Please try again." });
         }
 
-        public async Task<IActionResult> UpdateUserDetailsAsync(UpdateUserDTO dto)
+        public async Task<IActionResult> UpdateUserDetailsAsync(UserUpdateDTO dto)
         {
-            // FIND THE USER BY EMAIL
-            var user = await _userManager.FindByEmailAsync(dto.Email);
+            // GET THE EMAIL FROM THE AUTHENTICATION HEADER
+            var email = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Email)?.Value;
 
-            // CHECK IF USER EXISTS
+            // CHECK IF EMAIL IS NULL
+            if (string.IsNullOrEmpty(email))
+            {
+                return new NotFoundObjectResult(new { Status = "Error", Message = "Vendor not found. Please ensure you are logged in." });
+            }
+
+            // FIND THE USER BY EMAIL
+            var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
             {
-                return new NotFoundObjectResult(new { Status = "Error", Message = $"User with email {dto.Email} not found." });
+                return new NotFoundObjectResult(new { Status = "Error", Message = "Vendor not found. Please ensure you are logged in." });
             }
 
             // COMMONLY UPDATED FIELDS
@@ -183,21 +191,25 @@ namespace EAD_Backend_Application__.NET.Services
             user.DateOfBirth = dto.DateOfBirth;
             user.ProfileImageUrl = dto.ProfileImageUrl;
             user.Gender = dto.Gender;
-            user.Address = dto.Address;
-            user.City = dto.City;
-            user.State = dto.State;
-            user.PostalCode = dto.PostalCode;
 
             // UPDATE USER DETAILS BASED ON ROLE
             if (user.Role.Equals("Admin") || user.Role.Equals("CSR"))
             {
                 // ADMIN ROLE: UPDATE BASIC FIELDS ONLY
-                user.IsActive = dto.IsActive;
-                user.Bio = dto.Bio;
-                user.BusinessName = dto.BusinessName;
-                user.BusinessLicenseNumber = dto.BusinessLicenseNumber;
-                user.PreferredPaymentMethod = dto.PreferredPaymentMethod;
-
+                if (dto.Role.Equals("Customer"))
+                {
+                    user.Address = dto.Address;
+                    user.City = dto.City;
+                    user.State = dto.State;
+                    user.PostalCode = dto.PostalCode;
+                }else if (dto.Role.Equals("Vendor"))
+                {
+                    user.Bio = dto.Bio;
+                    user.BusinessName = dto.BusinessName;
+                    user.BusinessLicenseNumber = dto.BusinessLicenseNumber;
+                    user.PreferredPaymentMethod = dto.PreferredPaymentMethod;
+                }
+                
                 // CHANGE EMAIL
                 if (!string.IsNullOrEmpty(dto.NewEmail))
                 {
@@ -221,14 +233,6 @@ namespace EAD_Backend_Application__.NET.Services
                     }
                 }
             }
-            else if (user.Role.Equals("Vendor"))
-            {
-                // VENDOR ROLE: UPDATE ALL FIELDS
-                user.Bio = dto.Bio;
-                user.BusinessName = dto.BusinessName;
-                user.BusinessLicenseNumber = dto.BusinessLicenseNumber;
-                user.PreferredPaymentMethod = dto.PreferredPaymentMethod;
-            }
 
             // UPDATE THE USER IN THE DATABASE
             var result = await _userManager.UpdateAsync(user);
@@ -240,6 +244,199 @@ namespace EAD_Backend_Application__.NET.Services
 
             // HANDLE FAILURE CASE
             return new ConflictObjectResult(new { Status = "Error", Message = "Failed to update user details. Please try again." });
+        }
+
+        public async Task<IActionResult> UpdateUserShippingAsync(UserShippingDetailsDTO dto)
+        {
+            // GET THE EMAIL FROM AUTHENTICATION HEADER
+            var email = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Email)?.Value;
+
+            // CHECK IF EMAIL IS NULL
+            if (string.IsNullOrEmpty(email))
+            {
+                return new NotFoundObjectResult(new { Status = "Error", Message = "User not found. Please ensure you are logged in." });
+            }
+
+            // FIND THE USER BY EMAIL
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return new NotFoundObjectResult(new { Status = "Error", Message = "User not found. Please ensure you are logged in." });
+            }
+
+            // UPDATE SHIPPING DETAILS
+            user.Address = dto.Address;
+            user.City = dto.City;
+            user.State = dto.State;
+            user.PostalCode = dto.PostalCode;
+
+            // UPDATE IN DATABASE
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                return new OkObjectResult(new { Status = "Success", Message = "Shipping details updated successfully." });
+            }
+
+            return new ConflictObjectResult(new { Status = "Error", Message = "Failed to update shipping details. Please try again." });
+        }
+
+        public async Task<IActionResult> UpdateUserBioAsync(UserBioDetailsDTO dto)
+        {
+            // GET THE EMAIL FROM AUTHENTICATION HEADER
+            var email = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Email)?.Value;
+
+            // CHECK IF EMAIL IS NULL
+            if (string.IsNullOrEmpty(email))
+            {
+                return new NotFoundObjectResult(new { Status = "Error", Message = "User not found. Please ensure you are logged in." });
+            }
+
+            // FIND THE USER BY EMAIL
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return new NotFoundObjectResult(new { Status = "Error", Message = "User not found. Please ensure you are logged in." });
+            }
+
+            // UPDATE BIO DETAILS
+            user.Bio = dto.Bio;
+            user.BusinessName = dto.BusinessName;
+            if(dto.BusinessLicenseNumber != null)
+            {
+                user.BusinessLicenseNumber = dto.BusinessLicenseNumber;
+            }
+            if (dto.PreferredPaymentMethod != null) {
+                user.PreferredPaymentMethod = dto.PreferredPaymentMethod;
+            }
+
+            // UPDATE IN DATABASE
+            var result = await _userManager.UpdateAsync(user);
+            if (result.Succeeded)
+            {
+                return new OkObjectResult(new { Status = "Success", Message = "Vendor bio updated successfully." });
+            }
+
+            return new ConflictObjectResult(new { Status = "Error", Message = "Failed to update vendor bio. Please try again." });
+        }
+
+        public async Task<ActionResult<UserGetDTO>> GetUserDetailsAsync()
+        {
+            // GET THE EMAIL FROM AUTHENTICATION HEADER
+            var email = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Email)?.Value;
+
+            // CHECK IF EMAIL IS NULL
+            if (string.IsNullOrEmpty(email))
+            {
+                return new NotFoundObjectResult(new { Status = "Error", Message = "User not found. Please ensure you are logged in." });
+            }
+
+            // FIND THE USER BY EMAIL
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return new NotFoundObjectResult(new { Status = "Error", Message = "User not found. Please ensure you are logged in." });
+            }
+
+            var userDetails = new UserGetDTO
+            {
+                UserName = user.UserName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                ProfileImageUrl = user.ProfileImageUrl,
+                DateOfBirth = user.DateOfBirth,
+                Gender = user.Gender
+            };
+
+            // RETURN USER DETAILS
+            return new OkObjectResult(userDetails);
+        }
+
+        public async Task<ActionResult<IEnumerable<UserGetDTO>>> GetUserDetailsAdminAsync(int pageNumber, int pageSize)
+        {
+            // VALIDATE PAGINATION PARAMETERS
+            if (pageNumber <= 0 || pageSize <= 0)
+            {
+                return new BadRequestObjectResult(new { Status = "Error", Message = "Invalid pagination parameters." });
+            }
+
+            // GET TOTAL USERS COUNT
+            var totalUsers = await _userManager.Users.CountAsync();
+
+            // FETCH ALL USERS FROM USER MANAGER
+            var users = _userManager.Users.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+
+            // MAP USERS TO DTOs
+            var userDetailsList = users.Select(user => new UserGetDTO
+            {
+                UserName = user.UserName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                ProfileImageUrl = user.ProfileImageUrl,
+                DateOfBirth = user.DateOfBirth,
+                Gender = user.Gender
+            }).ToList();
+
+            // CREATE PAGINATION RESPONSE
+            var paginationResponse = new
+            {
+                Status = "Success",
+                TotalCount = totalUsers,
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                UserList = userDetailsList
+            };
+
+            // RETURN LIST OF USER DETAILS
+            return new OkObjectResult(new { Status = "Success", Body = paginationResponse });
+        }
+
+        public async Task<ActionResult<UserUpdateDTO>> GetUserDetailsByEmailAsync(string email)
+        {
+            // FIND THE USER BY EMAIL
+            var user = await _userManager.FindByEmailAsync(email);
+
+            // CHECK IF USER EXISTS
+            if (user == null)
+            {
+                return new NotFoundObjectResult(new { Status = "Error", Message = $"User with email {email} not found." });
+            }
+
+            // MAP USER TO DTO
+            var userDetails = new UserUpdateDTO
+            {
+                UserName = user.UserName,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                ProfileImageUrl = user.ProfileImageUrl,
+                DateOfBirth = user.DateOfBirth,
+                Gender = user.Gender,
+                Role = user.Role,
+                IsActive = user.IsActive
+            };
+
+            if (user.Role.Equals("Customer"))
+            {
+                userDetails.Address = user.Address;
+                userDetails.City = user.City;
+                userDetails.State = user.State;
+                userDetails.PostalCode = user.PostalCode;
+            }
+            if (user.Role.Equals("Vendor"))
+            {
+                userDetails.Bio = user.Bio;
+                userDetails.BusinessName = user.BusinessName;
+                if (user.BusinessLicenseNumber != null)
+                {
+                    userDetails.BusinessLicenseNumber = user.BusinessLicenseNumber;
+                }
+                if (user.PreferredPaymentMethod != null)
+                {
+                    userDetails.PreferredPaymentMethod = user.PreferredPaymentMethod;
+                }
+            }
+
+            // RETURN USER DETAILS
+            return new OkObjectResult(userDetails);
         }
 
         public async Task<IActionResult> DeleteUserAsync(string email)
@@ -264,5 +461,7 @@ namespace EAD_Backend_Application__.NET.Services
             // HANDLE FAILURE CASE
             return new ConflictObjectResult(new { Status = "Error", Message = "Failed to delete user. Please try again." });
         }
+
+        
     }
-    }
+}

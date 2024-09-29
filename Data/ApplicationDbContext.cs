@@ -61,6 +61,8 @@ namespace EAD_Backend_Application__.NET.Data
         public DbSet<ProductColor> ProductColors { get; set; } = default!;
         public DbSet<ProductSize> ProductSizes { get; set; } = default!;
         public DbSet<CartItemModel> CartItems { get; set; } = default!;
+        public DbSet<OrderModel> Orders { get; set; } = default!;
+        public DbSet<OrderItemModel> OrderItems { get; set; } = default!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -81,6 +83,12 @@ namespace EAD_Backend_Application__.NET.Data
                 entity.HasMany(u => u.CartItems)
                       .WithOne(c => c.User)
                       .HasForeignKey(c => c.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                // CONFIGURE RELATIONSHIP WITH ORDERS
+                entity.HasMany(u => u.Orders)
+                      .WithOne(o => o.User)
+                      .HasForeignKey(o => o.CustomerId)
                       .OnDelete(DeleteBehavior.Cascade);
             });
 
@@ -128,6 +136,26 @@ namespace EAD_Backend_Application__.NET.Data
             {
                 entity.ToTable("CartItems");
                 entity.HasKey(c => c.CartId);
+            });
+
+            // CONFIGURE ORDER MODEL
+            modelBuilder.Entity<OrderModel>(entity =>
+            {
+                entity.ToTable("Orders");
+                entity.HasKey(o => o.OrderId);
+
+                // CONFIGURE RELATIONSHIP WITH ORDER ITEMS
+                entity.HasMany(o => o.OrderItems)
+                      .WithOne(oi => oi.Order)
+                      .HasForeignKey(oi => oi.OrderId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // CONFIGURE ORDER DETAILS MODEL
+            modelBuilder.Entity<OrderItemModel>(entity =>
+            {
+                entity.ToTable("OrderItems");
+                entity.HasKey(oi => oi.OrderItemId);
             });
         }
 
