@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace EAD_Backend_Application__.NET.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240929052706_InitialCreate")]
+    [Migration("20240929145249_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -30,26 +30,20 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
                     b.Property<string>("CartId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<double>("Discount")
-                        .HasColumnType("float");
-
-                    b.Property<string>("ImageUri")
+                    b.Property<string>("Color")
+                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<double>("Price")
-                        .HasColumnType("float");
 
                     b.Property<string>("ProductId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<string>("ProductName")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
                     b.Property<int>("Quantity")
                         .HasColumnType("int");
+
+                    b.Property<string>("Size")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -163,11 +157,8 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
 
             modelBuilder.Entity("EAD_Backend_Application__.NET.Models.ProductColor", b =>
                 {
-                    b.Property<int>("ColorId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ColorId"));
+                    b.Property<string>("ColorId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Color")
                         .IsRequired()
@@ -192,33 +183,28 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
 
                     b.Property<string>("Brand")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Category")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<double>("Discount")
                         .HasColumnType("float");
 
                     b.Property<string>("ImageUri")
-                        .HasMaxLength(40)
-                        .HasColumnType("nvarchar(40)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsVisible")
                         .HasColumnType("bit");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<double>("Price")
                         .HasColumnType("float");
@@ -239,11 +225,8 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
 
             modelBuilder.Entity("EAD_Backend_Application__.NET.Models.ProductSize", b =>
                 {
-                    b.Property<int>("SizeId")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("SizeId"));
+                    b.Property<string>("SizeId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("ProductId")
                         .IsRequired()
@@ -466,29 +449,23 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
                     b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityUser");
 
                     b.Property<string>("Address")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Bio")
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("BusinessLicenseNumber")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("BusinessName")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("City")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("DateOfBirth")
                         .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Gender")
                         .IsRequired()
@@ -498,24 +475,20 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
                         .HasColumnType("bit");
 
                     b.Property<string>("PostalCode")
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PreferredPaymentMethod")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ProfileImageUrl")
-                        .HasMaxLength(40)
-                        .HasColumnType("nvarchar(40)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("State")
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.ToTable("Users", (string)null);
                 });

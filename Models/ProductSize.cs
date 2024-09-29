@@ -5,14 +5,15 @@ namespace EAD_Backend_Application__.NET.Models
     public class ProductSize
     {
         [Key]
-        public int SizeId { get; set; }
+        public string SizeId { get; set; } = Guid.NewGuid().ToString();
 
         [Required(ErrorMessage = "Size is required.")]
         [StringLength(20, MinimumLength = 2, ErrorMessage = "Size must be between 2 and 20 characters.")]
-        public string Size { get; set; } = string.Empty;
+        public required string Size { get; set; }
 
         // FOREIGN KEY TO PRODUCT
-        public string ProductId { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Product Id is required.")]
+        public required string ProductId { get; set; }
         public virtual ProductModel Product { get; set; }
     }
 }

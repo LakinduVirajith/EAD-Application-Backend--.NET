@@ -4,6 +4,7 @@ using EAD_Backend_Application__.NET.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 using System.Security.Claims;
 
 namespace EAD_Backend_Application__.NET.Services
@@ -23,7 +24,7 @@ namespace EAD_Backend_Application__.NET.Services
             _context = context;
         }
 
-        public async Task<IActionResult> AddProductAsync(string productId)
+        public async Task<IActionResult> AddProductAsync(CartAddDTO dto)
         {
             // GET THE EMAIL FROM THE AUTHENTICATION HEADER
             var email = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Email)?.Value;
@@ -42,14 +43,20 @@ namespace EAD_Backend_Application__.NET.Services
             }
 
             // FIND THE PRODUCT IN DATABASE
-            var product = await _context.Products.FindAsync(productId);
+            var product = await _context.Products.FindAsync(dto.productId);
             if (product == null)
             {
                 return new NotFoundObjectResult(new { Status = "Error", Message = "Product not found." });
             }
 
+            // VALIDATE THE QUANTITY 
+            if (dto.Quantity > product.StockQuantity)
+            {
+                return new BadRequestObjectResult(new { Status = "Error", Message = "Not a valid stock quantity." });
+            }
+
             // CHECK IF CART ITEM ALREADY EXISTS
-            var cartItem = await _context.CartItems.FirstOrDefaultAsync(ci => ci.UserId == user.Id && ci.ProductId == productId);
+            var cartItem = await _context.CartItems.FirstOrDefaultAsync(ci => ci.UserId == user.Id && ci.ProductId == dto.productId);
             if (cartItem != null)
             {
                 // INCREASE QUANTITY IF PRODUCT ALREADY IN CART
@@ -60,11 +67,10 @@ namespace EAD_Backend_Application__.NET.Services
                 // CREATE NEW CART ITEM IF NOT EXISTING
                 cartItem = new CartItemModel
                 {
-                    ProductName = product.Name,
-                    Price = product.Price,
-                    Discount = product.Discount,
-                    Quantity = 1,
-                    ProductId = productId,
+                    Quantity = dto.Quantity,
+                    Size = dto.productId,
+                    Color = dto.Color,
+                    ProductId = dto.productId,
                     UserId = user.Id
                 };
                 _context.CartItems.Add(cartItem);
@@ -127,7 +133,7 @@ namespace EAD_Backend_Application__.NET.Services
 
             // SAVE CHANGES TO DATABASE
             await _context.SaveChangesAsync();
-            return new OkObjectResult(new { Status = "Success", Message = "Product quantity updated." });
+            return new OkObjectResult(new { Status = "Success", Message = "Product quantity decreased." });
         }
 
         public async Task<ActionResult<IEnumerable<CartItemDTO>>> GetProductsAsync()
@@ -159,7 +165,11 @@ namespace EAD_Backend_Application__.NET.Services
             foreach (var cartItem in cartItems)
             {
                 // FIND THE PRODUCT BY PRODUCT ID
-                var product = await _context.Products.FirstOrDefaultAsync(p => p.ProductId == cartItem.ProductId);
+                var product = await _context.Products
+                    .Include(p => p.Sizes)
+                    .Include(p => p.Colors)
+                    .FirstOrDefaultAsync(p => p.ProductId == cartItem.ProductId);
+
                 if (product == null)
                 {
                     // REMOVE CART ITEM
@@ -172,18 +182,20 @@ namespace EAD_Backend_Application__.NET.Services
                     {    
                         cartItem.Quantity = product.StockQuantity;
                     }
-                    // COMPARE OTHER ENTITIES
-                    if(cartItem.ImageUri != product.ImageUri)
+                    // COMPARE SIZE
+                    var productSize = product.Sizes.FirstOrDefault(ps => ps.Size == cartItem.Size);
+                    if (productSize == null)
                     {
-                        cartItem.ImageUri = product.ImageUri;
+                        // ASSIGN FIRST AVAILABLE SIZE IF CART SIZE NOT AVAILABLE
+                        cartItem.Size = product.Sizes.FirstOrDefault()?.Size ?? "Unknown";
                     }
-                    if (cartItem.Price != product.Price) 
-                    { 
-                        cartItem.Price = product.Price;
-                    }
-                    if (cartItem.Discount != product.Discount)
+
+                    // COMPARE COLOR
+                    var productColor = product.Colors.FirstOrDefault(pc => pc.Color == cartItem.Color);
+                    if (productColor == null)
                     {
-                        cartItem.Discount = product.Discount;
+                        // ASSIGN FIRST AVAILABLE COLOR IF CART COLOR NOT AVAILABLE
+                        cartItem.Color = product.Colors.FirstOrDefault()?.Color ?? "Unknown";
                     }
 
                     // SAVE CHANGES TO CART ITEM
@@ -193,11 +205,14 @@ namespace EAD_Backend_Application__.NET.Services
                     cartItemDtos.Add(new CartItemDTO
                     {
                         CartId = cartItem.CartId,
-                        ImageUri = cartItem.ImageUri,
-                        ProductName = cartItem.ProductName,
-                        Price = cartItem.Price,
-                        Discount = cartItem.Discount,
+                        ImageUri = product.ImageUri,
+                        ProductName = product.Name,
+                        Price = product.Price,
+                        Discount = product.Discount,
+                        Size = cartItem.Size,
+                        Color = cartItem.Color,
                         Quantity = cartItem.Quantity,
+                        ProductId = cartItem.ProductId
                     });
                 }
             }

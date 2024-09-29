@@ -62,8 +62,8 @@ namespace EAD_Backend_Application__.NET.Services
             };
 
             // MAP SIZES AND COLORS FROM DTO TO PRODUCTMODEL
-            product.Sizes = dto.Size.Select(size => new ProductSize { Size = size }).ToList();
-            product.Colors = dto.Color.Select(color => new ProductColor { Color = color }).ToList();
+            product.Sizes = dto.Size.Select(size => new ProductSize { Size = size, ProductId = product.ProductId }).ToList();
+            product.Colors = dto.Color.Select(color => new ProductColor { Color = color, ProductId = product.ProductId }).ToList();
 
             // SAVE TO DATABASE (USING DBCONTEXT)
             try
@@ -122,8 +122,8 @@ namespace EAD_Backend_Application__.NET.Services
             product.Colors.Clear();
 
             // UPDATE SIZES AND COLORS
-            product.Sizes = dto.Size.Select(size => new ProductSize { Size = size }).ToList();
-            product.Colors = dto.Color.Select(color => new ProductColor { Color = color }).ToList();
+            product.Sizes = dto.Size.Select(size => new ProductSize { Size = size, ProductId = product.ProductId }).ToList();
+            product.Colors = dto.Color.Select(color => new ProductColor { Color = color, ProductId = product.ProductId }).ToList();
 
             // SAVE CHANGES TO DATABASE
             try

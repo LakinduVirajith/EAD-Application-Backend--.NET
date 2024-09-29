@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EAD_Backend_Application__.NET.Services
 {
@@ -424,7 +425,7 @@ namespace EAD_Backend_Application__.NET.Services
             return new OkObjectResult(userDetails);
         }
 
-        public async Task<ActionResult<IEnumerable<UserGetDTO>>> GetUserDetailsAdminAsync(int pageNumber, int pageSize)
+        public async Task<ActionResult<IEnumerable<UserGetDTO>>> GetUserDetailsAdminAsync(string userRole, int pageNumber, int pageSize)
         {
             // VALIDATE PAGINATION PARAMETERS
             if (pageNumber <= 0 || pageSize <= 0)
@@ -432,11 +433,22 @@ namespace EAD_Backend_Application__.NET.Services
                 return new BadRequestObjectResult(new { Status = "Error", Message = "Invalid pagination parameters." });
             }
 
+            // VALIDATE THE ROLE
+            var validRoles = Enum.GetNames(typeof(UserRoles));
+            if (!validRoles.Contains(userRole))
+            {
+                return new BadRequestObjectResult(new IdentityError { Code = "Error", Description = "Invalid role provided." });
+            }
+
             // GET TOTAL USERS COUNT
-            var totalUsers = await _userManager.Users.CountAsync();
+            var totalUsers = await _userManager.Users.CountAsync(u => u.Role == userRole);
 
             // FETCH ALL USERS FROM USER MANAGER
-            var users = _userManager.Users.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            var users = _userManager.Users
+                .Where(u => u.Role == userRole)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
 
             // MAP USERS TO DTOs
             var userDetailsList = users.Select(user => new UserGetDTO

@@ -7,22 +7,13 @@ namespace EAD_Backend_Application__.NET.Models
         [Key]
         public string CartId { get; set; } = Guid.NewGuid().ToString();
 
-        public string? ImageUri { get; set; }
+        [Required(ErrorMessage = "Size is required.")]
+        public string Size { get; set; } = string.Empty;
 
-        [Required(ErrorMessage = "Product Name is required.")]
-        [StringLength(20, MinimumLength = 2, ErrorMessage = "Product Name must be between 2 and 20 characters.")]
-        public string ProductName { get; set; } = string.Empty;
-
-        [Required(ErrorMessage = "Price is required.")]
-        [Range(0, double.MaxValue, ErrorMessage = "Price must be a positive value.")]
-        public Double Price { get; set; } = 0.0;
-
-        [Required(ErrorMessage = "Discount is required.")]
-        [Range(0, double.MaxValue, ErrorMessage = "Discount must be a positive value.")]
-        public Double Discount { get; set; } = 0.0;
+        [Required(ErrorMessage = "Color is required.")]
+        public string Color { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Quantity is required.")]
-        [Range(0, int.MaxValue, ErrorMessage = "Quantity must be a non-negative integer.")]
         public int Quantity { get; set; } = 0;
 
         // FOREIGN KEY TO PRODUCT

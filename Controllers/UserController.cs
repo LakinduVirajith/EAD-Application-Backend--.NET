@@ -76,8 +76,8 @@ namespace EAD_Backend_Application__.NET.Controllers
         }
 
         /// <summary>Check an authenticated user if have any shipping details.</summary>
-        // PUT: api/v1/user/check/shipping
-        [HttpPut("check/shipping")]
+        // GET: api/v1/user/check/shipping
+        [HttpGet("check/shipping")]
         [Authorize(Roles = "Customer")]
         public async Task<IActionResult> CheckUserShipping()
         {
@@ -115,9 +115,9 @@ namespace EAD_Backend_Application__.NET.Controllers
         // GET: api/v1/user/details/admin
         [HttpGet("details/admin")]
         [Authorize(Roles = "Admin, CSR")]
-        public async Task<ActionResult<IEnumerable<UserGetDTO>>> GetUserDetailsAdmin(int pageNumber, int pageSize)
+        public async Task<ActionResult<IEnumerable<UserGetDTO>>> GetUserDetailsAdmin(string userRole, int pageNumber, int pageSize)
         {
-            return await _userService.GetUserDetailsAdminAsync(pageNumber, pageSize);
+            return await _userService.GetUserDetailsAdminAsync(userRole, pageNumber, pageSize);
         }
 
         /// <summary>Retrieves user details based on the provided email address for admin or CSR users.</summary>

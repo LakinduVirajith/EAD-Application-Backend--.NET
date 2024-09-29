@@ -18,10 +18,10 @@ namespace EAD_Backend_Application__.NET.Controllers
         }
 
         /// <summary>Adds a product to the cart.</summary>
-        // POST: api/v1/cart/add/{productId}
-        [HttpPost("add/{productId}")]
-        public async Task<IActionResult> AddProduct(string productId) { 
-            return await _cartService.AddProductAsync(productId);
+        // POST: api/v1/cart/add
+        [HttpPost("add")]
+        public async Task<IActionResult> AddProduct(CartAddDTO dto) { 
+            return await _cartService.AddProductAsync(dto);
         }
 
         /// <summary>Increases the quantity of a product in the cart.</summary>
