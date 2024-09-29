@@ -5,7 +5,7 @@ namespace EAD_Backend_Application__.NET.Services
 {
     public interface ICartService
     {
-        Task<IActionResult> AddProductAsync(string productId);
+        Task<IActionResult> AddProductAsync(CartAddDTO dto);
         Task<IActionResult> IncreaseQuantityAsync(string cartId);
         Task<IActionResult> DecreaseQuantityAsync(string cartId);
         Task<ActionResult<IEnumerable<CartItemDTO>>> GetProductsAsync();

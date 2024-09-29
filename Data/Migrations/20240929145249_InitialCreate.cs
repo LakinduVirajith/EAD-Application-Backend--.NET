@@ -161,17 +161,17 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
                 columns: table => new
                 {
                     Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ProfileImageUrl = table.Column<string>(type: "nvarchar(40)", maxLength: 40, nullable: true),
-                    DateOfBirth = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: false),
+                    ProfileImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DateOfBirth = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Gender = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Address = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    City = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    State = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    PostalCode = table.Column<string>(type: "nvarchar(10)", maxLength: 10, nullable: true),
-                    Bio = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: true),
-                    BusinessName = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    BusinessLicenseNumber = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    PreferredPaymentMethod = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    Address = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    City = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    State = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PostalCode = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Bio = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    BusinessName = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    BusinessLicenseNumber = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    PreferredPaymentMethod = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsActive = table.Column<bool>(type: "bit", nullable: false)
                 },
@@ -219,13 +219,13 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
                 columns: table => new
                 {
                     ProductId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ImageUri = table.Column<string>(type: "nvarchar(40)", maxLength: 40, nullable: true),
-                    Name = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Brand = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    ImageUri = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Brand = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Price = table.Column<double>(type: "float", nullable: false),
                     Discount = table.Column<double>(type: "float", nullable: false),
-                    Description = table.Column<string>(type: "nvarchar(500)", maxLength: 500, nullable: false),
-                    Category = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Description = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Category = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     StockQuantity = table.Column<int>(type: "int", nullable: false),
                     IsVisible = table.Column<bool>(type: "bit", nullable: false),
                     VendorId = table.Column<string>(type: "nvarchar(450)", nullable: false)
@@ -271,10 +271,8 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
                 columns: table => new
                 {
                     CartId = table.Column<string>(type: "nvarchar(450)", nullable: false),
-                    ImageUri = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ProductName = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
-                    Price = table.Column<double>(type: "float", nullable: false),
-                    Discount = table.Column<double>(type: "float", nullable: false),
+                    Size = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Color = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Quantity = table.Column<int>(type: "int", nullable: false),
                     ProductId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     UserId = table.Column<string>(type: "nvarchar(450)", nullable: false)
@@ -300,8 +298,7 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
                 name: "ProductColors",
                 columns: table => new
                 {
-                    ColorId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    ColorId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Color = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     ProductId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
@@ -320,8 +317,7 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
                 name: "ProductSizes",
                 columns: table => new
                 {
-                    SizeId = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    SizeId = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     Size = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     ProductId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },

@@ -11,9 +11,11 @@ namespace ASP.NET___CRUD.Services
 {
     public class AuthService : IAuthService
     {
+        // DEPENDENCIES INJECTED THROUGH CONSTRUCTOR
         private readonly UserManager<UserModel> _userManager;
         private readonly TokenService _tokenService;
 
+        // CONSTRUCTOR TO INJECT DEPENDENCIES
         public AuthService(UserManager<UserModel> userManager, TokenService tokenService)
         {
             _userManager = userManager;
@@ -83,12 +85,12 @@ namespace ASP.NET___CRUD.Services
         public async Task<(string? token, string? refreshToken)> AuthenticateUserAsync(LoginDTO dto)
         {
             // TRY TO FIND THE USER BY USERNAME
-            var user = await _userManager.FindByNameAsync(dto.Email);
+            var user = await _userManager.FindByNameAsync(dto.UserName);
 
             // IF USER NOT FOUND, TRY TO FIND BY EMAIL
             if (user == null)
             {
-                user = await _userManager.FindByEmailAsync(dto.Email);
+                user = await _userManager.FindByEmailAsync(dto.UserName);
             }
 
             // CHECK IF THE USER EXISTS AND THE PASSWORD IS CORRECT

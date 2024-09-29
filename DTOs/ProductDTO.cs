@@ -7,10 +7,5 @@
         public string Name { get; set; } = string.Empty;
         public Double Price { get; set; } = 0.0;
         public Double Discount { get; set; } = 0.0;
-
-        public ProductDTO()
-        {
-            
-        }
     }
 }

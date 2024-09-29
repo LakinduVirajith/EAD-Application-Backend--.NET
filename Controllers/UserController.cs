@@ -2,7 +2,6 @@
 using EAD_Backend_Application__.NET.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Swashbuckle.AspNetCore.Annotations;
 
 namespace EAD_Backend_Application__.NET.Controllers
 {
@@ -30,6 +29,7 @@ namespace EAD_Backend_Application__.NET.Controllers
         /// <summary>Allows anyone to deactivate a user account by their email address.</summary>
         // PUT: api/v1/user/deactivate/{email}
         [HttpPut("deactivate/{email}")]
+        [Authorize]
         public async Task<IActionResult> DeactivateUser(string email)
         {
             return await _userService.DeactivateUserAsync(email);
@@ -75,6 +75,15 @@ namespace EAD_Backend_Application__.NET.Controllers
             return await _userService.UpdateUserDetailsAsync(dto);
         }
 
+        /// <summary>Check an authenticated user if have any shipping details.</summary>
+        // GET: api/v1/user/check/shipping
+        [HttpGet("check/shipping")]
+        [Authorize(Roles = "Customer")]
+        public async Task<IActionResult> CheckUserShipping()
+        {
+            return await _userService.CheckUserShippingAsync();
+        }
+
         /// <summary>Allows an authenticated user to update their shipping details.</summary>
         // PUT: api/v1/user/update/shipping
         [HttpPut("update/shipping")]
@@ -106,9 +115,9 @@ namespace EAD_Backend_Application__.NET.Controllers
         // GET: api/v1/user/details/admin
         [HttpGet("details/admin")]
         [Authorize(Roles = "Admin, CSR")]
-        public async Task<ActionResult<IEnumerable<UserGetDTO>>> GetUserDetailsAdmin(int pageNumber, int pageSize)
+        public async Task<ActionResult<IEnumerable<UserGetDTO>>> GetUserDetailsAdmin(string userRole, int pageNumber, int pageSize)
         {
-            return await _userService.GetUserDetailsAdminAsync(pageNumber, pageSize);
+            return await _userService.GetUserDetailsAdminAsync(userRole, pageNumber, pageSize);
         }
 
         /// <summary>Retrieves user details based on the provided email address for admin or CSR users.</summary>

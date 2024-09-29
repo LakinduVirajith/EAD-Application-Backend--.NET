@@ -5,14 +5,15 @@ namespace EAD_Backend_Application__.NET.Models
     public class ProductColor
     {
         [Key]
-        public int ColorId { get; set; }
+        public string ColorId { get; set; } = Guid.NewGuid().ToString();
 
         [Required(ErrorMessage = "Color is required.")]
         [StringLength(20, MinimumLength = 2, ErrorMessage = "Color must be between 2 and 20 characters.")]
-        public string Color { get; set; }  = string.Empty;
+        public required string Color { get; set; }
 
         // FOREIGN KEY TO PRODUCT
-        public string ProductId { get; set; } = string.Empty;
+        [Required(ErrorMessage = "Product Id is required.")]
+        public required string ProductId { get; set; }
         public ProductModel Product { get; set; }
     }
 }

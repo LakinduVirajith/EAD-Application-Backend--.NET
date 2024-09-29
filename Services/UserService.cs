@@ -1,22 +1,29 @@
-﻿using EAD_Backend_Application__.NET.DTOs;
+﻿using EAD_Backend_Application__.NET.Data;
+using EAD_Backend_Application__.NET.DTOs;
+using EAD_Backend_Application__.NET.Enums;
 using EAD_Backend_Application__.NET.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EAD_Backend_Application__.NET.Services
 {
     public class UserService : IUserService
     {
+        // DEPENDENCIES INJECTED THROUGH CONSTRUCTOR
         private readonly UserManager<UserModel> _userManager;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly ApplicationDbContext _context;
         private readonly TokenService _tokenService;
 
-        public UserService(UserManager<UserModel> userManager, IHttpContextAccessor httpContextAccessor, TokenService tokenService)
+        // CONSTRUCTOR TO INJECT DEPENDENCIES
+        public UserService(UserManager<UserModel> userManager, IHttpContextAccessor httpContextAccessor, ApplicationDbContext context, TokenService tokenService)
         {
             _userManager = userManager;
             _httpContextAccessor = httpContextAccessor;
+            _context = context;
             _tokenService = tokenService;
         }
 
@@ -175,14 +182,14 @@ namespace EAD_Backend_Application__.NET.Services
             // CHECK IF EMAIL IS NULL
             if (string.IsNullOrEmpty(email))
             {
-                return new NotFoundObjectResult(new { Status = "Error", Message = "Vendor not found. Please ensure you are logged in." });
+                return new NotFoundObjectResult(new { Status = "Error", Message = "User not found. Please ensure you are logged in." });
             }
 
             // FIND THE USER BY EMAIL
             var user = await _userManager.FindByEmailAsync(email);
             if (user == null)
             {
-                return new NotFoundObjectResult(new { Status = "Error", Message = "Vendor not found. Please ensure you are logged in." });
+                return new NotFoundObjectResult(new { Status = "Error", Message = "User not found. Please ensure you are logged in." });
             }
 
             // COMMONLY UPDATED FIELDS
@@ -198,16 +205,47 @@ namespace EAD_Backend_Application__.NET.Services
                 // ADMIN ROLE: UPDATE BASIC FIELDS ONLY
                 if (dto.Role.Equals("Customer"))
                 {
+                    if (dto.Address == null) {
+                        return new BadRequestObjectResult(new { Status = "Error", Message = "Address is required." });
+                    }
+                    if (dto.City == null)
+                    {
+                        return new BadRequestObjectResult(new { Status = "Error", Message = "City is required." });
+                    }
+                    if (dto.State == null)
+                    {
+                        return new BadRequestObjectResult(new { Status = "Error", Message = "State is required." });
+                    }
+                    if (dto.PostalCode == null)
+                    {
+                        return new BadRequestObjectResult(new { Status = "Error", Message = "PostalCode is required." });
+                    }
+
                     user.Address = dto.Address;
                     user.City = dto.City;
                     user.State = dto.State;
                     user.PostalCode = dto.PostalCode;
                 }else if (dto.Role.Equals("Vendor"))
                 {
+                    if (dto.Bio == null)
+                    {
+                        return new BadRequestObjectResult(new { Status = "Error", Message = "Bio is required." });
+                    }
+                    if (dto.BusinessName == null)
+                    {
+                        return new BadRequestObjectResult(new { Status = "Error", Message = "Business Name is required." });
+                    }
+                    if (dto.BusinessLicenseNumber != null)
+                    {
+                        user.BusinessLicenseNumber = dto.BusinessLicenseNumber;
+                    }
+                    if (dto.PreferredPaymentMethod != null)
+                    {
+                        user.PreferredPaymentMethod = dto.PreferredPaymentMethod;
+                    }
+
                     user.Bio = dto.Bio;
                     user.BusinessName = dto.BusinessName;
-                    user.BusinessLicenseNumber = dto.BusinessLicenseNumber;
-                    user.PreferredPaymentMethod = dto.PreferredPaymentMethod;
                 }
                 
                 // CHANGE EMAIL
@@ -244,6 +282,35 @@ namespace EAD_Backend_Application__.NET.Services
 
             // HANDLE FAILURE CASE
             return new ConflictObjectResult(new { Status = "Error", Message = "Failed to update user details. Please try again." });
+        }
+
+        public async Task<IActionResult> CheckUserShippingAsync()
+        {
+            // GET THE EMAIL FROM AUTHENTICATION HEADER
+            var email = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Email)?.Value;
+
+            // CHECK IF EMAIL IS NULL
+            if (string.IsNullOrEmpty(email))
+            {
+                return new NotFoundObjectResult(new { Status = "Error", Message = "User not found. Please ensure you are logged in." });
+            }
+
+            // FIND THE USER BY EMAIL
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return new NotFoundObjectResult(new { Status = "Error", Message = "User not found. Please ensure you are logged in." });
+            }
+
+            // CHECK IF USER HAS COMPLETE SHIPPING DETAILS
+            bool hasShippingDetails = HasCompleteShippingDetails(user);
+
+            return new OkObjectResult(new
+            {
+                Status = "Success",
+                Message = hasShippingDetails ? "User has shipping details." : "User does not have shipping details.",
+                Body = hasShippingDetails
+            });
         }
 
         public async Task<IActionResult> UpdateUserShippingAsync(UserShippingDetailsDTO dto)
@@ -306,7 +373,14 @@ namespace EAD_Backend_Application__.NET.Services
                 user.BusinessLicenseNumber = dto.BusinessLicenseNumber;
             }
             if (dto.PreferredPaymentMethod != null) {
-                user.PreferredPaymentMethod = dto.PreferredPaymentMethod;
+                if (Enum.TryParse(typeof(PaymentMethod), dto.PreferredPaymentMethod, true, out var validPaymentMethod))
+                {
+                    user.PreferredPaymentMethod = dto.PreferredPaymentMethod;
+                }
+                else
+                {
+                    return new BadRequestObjectResult(new { Status = "Error", Message = "Invalid payment method." });
+                }
             }
 
             // UPDATE IN DATABASE
@@ -351,7 +425,7 @@ namespace EAD_Backend_Application__.NET.Services
             return new OkObjectResult(userDetails);
         }
 
-        public async Task<ActionResult<IEnumerable<UserGetDTO>>> GetUserDetailsAdminAsync(int pageNumber, int pageSize)
+        public async Task<ActionResult<IEnumerable<UserGetDTO>>> GetUserDetailsAdminAsync(string userRole, int pageNumber, int pageSize)
         {
             // VALIDATE PAGINATION PARAMETERS
             if (pageNumber <= 0 || pageSize <= 0)
@@ -359,11 +433,22 @@ namespace EAD_Backend_Application__.NET.Services
                 return new BadRequestObjectResult(new { Status = "Error", Message = "Invalid pagination parameters." });
             }
 
+            // VALIDATE THE ROLE
+            var validRoles = Enum.GetNames(typeof(UserRoles));
+            if (!validRoles.Contains(userRole))
+            {
+                return new BadRequestObjectResult(new IdentityError { Code = "Error", Description = "Invalid role provided." });
+            }
+
             // GET TOTAL USERS COUNT
-            var totalUsers = await _userManager.Users.CountAsync();
+            var totalUsers = await _userManager.Users.CountAsync(u => u.Role == userRole);
 
             // FETCH ALL USERS FROM USER MANAGER
-            var users = _userManager.Users.Skip((pageNumber - 1) * pageSize).Take(pageSize).ToList();
+            var users = _userManager.Users
+                .Where(u => u.Role == userRole)
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
 
             // MAP USERS TO DTOs
             var userDetailsList = users.Select(user => new UserGetDTO
@@ -404,9 +489,9 @@ namespace EAD_Backend_Application__.NET.Services
             // MAP USER TO DTO
             var userDetails = new UserUpdateDTO
             {
-                UserName = user.UserName,
+                UserName = !string.IsNullOrEmpty(user.UserName) ? user.UserName : "",
                 Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
+                PhoneNumber = !string.IsNullOrEmpty(user.PhoneNumber) ? user.PhoneNumber : "",
                 ProfileImageUrl = user.ProfileImageUrl,
                 DateOfBirth = user.DateOfBirth,
                 Gender = user.Gender,
@@ -450,6 +535,13 @@ namespace EAD_Backend_Application__.NET.Services
                 return new NotFoundObjectResult(new { Status = "Error", Message = $"User with email {email} not found." });
             }
 
+            // CHECK IF USER HAS ANY RELATED PRODUCTS
+            var products = await _context.Products.Where(p => p.VendorId == user.Id).ToListAsync();
+            if (products.Any())
+            {
+                return new ConflictObjectResult(new { Status = "Error", Message = "User cannot be deleted because they have associated products." });
+            }
+
             // DELETE THE USER
             var result = await _userManager.DeleteAsync(user);
 
@@ -462,6 +554,13 @@ namespace EAD_Backend_Application__.NET.Services
             return new ConflictObjectResult(new { Status = "Error", Message = "Failed to delete user. Please try again." });
         }
 
-        
+        // HELPER METHOD TO CHECK COMPLETE SHIPPING DETAILS
+        private bool HasCompleteShippingDetails(UserModel user)
+        {
+            return !string.IsNullOrEmpty(user.Address) &&
+                   !string.IsNullOrEmpty(user.City) &&
+                   !string.IsNullOrEmpty(user.State) &&
+                   !string.IsNullOrEmpty(user.PostalCode);
+        }
     }
 }
