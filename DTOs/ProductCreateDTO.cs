@@ -3,14 +3,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace EAD_Backend_Application__.NET.DTOs
 {
-    public class ProductDetailsDTO
+    public class ProductCreateDTO
     {
-        [Required(ErrorMessage = "Product Id is required.")]
-        public required string ProductId { get; set; }
-
-        [StringLength(100, MinimumLength = 5, ErrorMessage = "Image Uri must be between 5 and 100 characters.")]
-        public string? ImageUri { get; set; }
-
         [Required(ErrorMessage = "Product Name is required.")]
         [StringLength(40, MinimumLength = 2, ErrorMessage = "Product Name must be between 2 and 40 characters.")]
         public required string Name { get; set; }
@@ -45,6 +39,6 @@ namespace EAD_Backend_Application__.NET.DTOs
         [MinLengthCollection(1, ErrorMessage = "At least one color must be provided.")]
         public required List<string> Color { get; set; }
 
-        public bool IsVisible { get; set; }
+        public bool IsVisible { get; set; } = true;
     }
 }

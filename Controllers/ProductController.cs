@@ -21,7 +21,7 @@ namespace EAD_Backend_Application__.NET.Controllers
         // POST: api/v1/product/create
         [HttpPost("create")]
         [Authorize(Roles = "Vendor")]
-        public async Task<IActionResult> CreateProduct(ProductDetailsDTO dto)
+        public async Task<IActionResult> CreateProduct(ProductCreateDTO dto)
         {
             return await _productService.CreateProductAsync(dto);
         }
@@ -46,6 +46,15 @@ namespace EAD_Backend_Application__.NET.Controllers
         public async Task<IActionResult> UpdateProduct(ProductDetailsDTO dto)
         {
             return await _productService.UpdateProductAsync(dto);
+        }
+
+        /// <summary>Allows a vendor to update details of an existing product.</summary>
+        // PUT: api/v1/product/update
+        [HttpPut("stock")]
+        [Authorize(Roles = "Vendor")]
+        public async Task<IActionResult> UpdateProductStock(ProductStockDTO dto)
+        {
+            return await _productService.UpdateProductStockAsync(dto);
         }
 
         /// <summary>Retrieves a paginated list of all products available.</summary>

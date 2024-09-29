@@ -1,5 +1,6 @@
 ﻿using EAD_Backend_Application__.NET.Data;
 using EAD_Backend_Application__.NET.DTOs;
+using EAD_Backend_Application__.NET.Enums;
 using EAD_Backend_Application__.NET.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +23,7 @@ namespace EAD_Backend_Application__.NET.Services
             _context = context;
         }
 
-        public async Task<IActionResult> CreateProductAsync(ProductDetailsDTO dto)
+        public async Task<IActionResult> CreateProductAsync(ProductCreateDTO dto)
         {
             // GET THE EMAIL FROM THE AUTHENTICATION HEADER
             var email = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Email)?.Value;
@@ -40,7 +41,13 @@ namespace EAD_Backend_Application__.NET.Services
                 return new NotFoundObjectResult(new { Status = "Error", Message = "Vendor not found. Please ensure you are logged in." });
             }
 
-            // MAP DTO TO PRODUCTMODEL
+            // VALIDATE PRODUCT CATEGORY
+            if (!Enum.IsDefined(typeof(ProductCategory), dto.Category))
+            {
+                return new BadRequestObjectResult(new { Status = "Error", Message = "Invalid product category." });
+            }
+
+            // MAP DTO TO PRODUCT MODEL
             var product = new ProductModel
             {
                 Name = dto.Name,
@@ -82,12 +89,21 @@ namespace EAD_Backend_Application__.NET.Services
         public async Task<IActionResult> UpdateProductAsync(ProductDetailsDTO dto)
         {
             // FIND THE PRODUCT BY ID
-            var product = await _context.Products.FindAsync(dto.ProductId);
+            var product = await _context.Products
+            .Include(p => p.Sizes)
+            .Include(p => p.Colors)
+            .FirstOrDefaultAsync(p => p.ProductId == dto.ProductId);
 
             // CHECK IF PRODUCT EXISTS
             if (product == null)
             {
                 return new NotFoundObjectResult(new { Statsu = "Error", Message = "Product not found. Please check the provided ID." });
+            }
+
+            // VALIDATE PRODUCT CATEGORY
+            if (!Enum.IsDefined(typeof(ProductCategory), dto.Category))
+            {
+                return new BadRequestObjectResult(new { Status = "Error", Message = "Invalid product category." });
             }
 
             // UPDATE PRODUCT PROPERTIES
@@ -100,6 +116,10 @@ namespace EAD_Backend_Application__.NET.Services
             product.Category = dto.Category;
             product.StockQuantity = dto.StockQuantity;
             product.IsVisible = dto.IsVisible;
+
+            // CLEAR EXISTING SIZES AND COLORS
+            product.Sizes.Clear();
+            product.Colors.Clear();
 
             // UPDATE SIZES AND COLORS
             product.Sizes = dto.Size.Select(size => new ProductSize { Size = size }).ToList();
@@ -121,6 +141,36 @@ namespace EAD_Backend_Application__.NET.Services
             }
         }
 
+        public async Task<IActionResult> UpdateProductStockAsync(ProductStockDTO dto)
+        {
+            // FIND THE PRODUCT BY ID
+            var product = await _context.Products.FindAsync(dto.ProductId);
+
+            // CHECK IF PRODUCT EXISTS
+            if (product == null)
+            {
+                return new NotFoundObjectResult(new { Status = "Error", Message = "Product not found. Please check the provided ID." });
+            }
+
+            // UPDATE THE STOCK QUANTITY
+            product.StockQuantity = dto.StockQuantity;
+
+            // SAVE CHANGES TO DATABASE
+            try
+            {
+                _context.Products.Update(product);
+                await _context.SaveChangesAsync();
+                return new OkObjectResult(new { Status = "Success", Message = "Product stock successfully updated." });
+            }
+            catch (Exception)
+            {
+                return new ObjectResult(new { Status = "Error", Message = "An error occurred while updating the stock. Please try again later." })
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError
+                };
+            }
+        }
+
         public async Task<ActionResult<IEnumerable<ProductDTO>>> GetAllProductsAsync(int pageNumber, int pageSize)
         {
             // VALIDATE PAGE NUMBER AND SIZE
@@ -132,10 +182,11 @@ namespace EAD_Backend_Application__.NET.Services
             try
             {
                 // FETCH TOTAL PRODUCT COUNT
-                var totalProducts = await _context.Products.CountAsync();
+                var totalProducts = await _context.Products.CountAsync(p => p.IsVisible);
 
                 // FETCH PAGED PRODUCTS
                 var products = await _context.Products
+                    .Where(p => p.IsVisible)
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .Select(p => new ProductDTO
@@ -180,12 +231,12 @@ namespace EAD_Backend_Application__.NET.Services
             {
                 // FETCH TOTAL PRODUCT COUNT BASED ON SEARCH VALUE
                 var totalProducts = await _context.Products
-                    .Where(p => p.Name.Contains(searchValue) || p.Description.Contains(searchValue))
+                    .Where(p => (p.Name.Contains(searchValue) || p.Description.Contains(searchValue)) && p.IsVisible)
                     .CountAsync();
 
                 // FETCH PAGED PRODUCTS BASED ON SEARCH VALUE
                 var products = await _context.Products
-                    .Where(p => p.Name.Contains(searchValue) || p.Description.Contains(searchValue))
+                    .Where(p => (p.Name.Contains(searchValue) || p.Description.Contains(searchValue)) && p.IsVisible)
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .Select(p => new ProductDTO
@@ -289,8 +340,8 @@ namespace EAD_Backend_Application__.NET.Services
             {
                 // FETCH THE PRODUCT BY ID
                 var product = await _context.Products
-                    .Include(p => p.Sizes) // Include sizes if needed
-                    .Include(p => p.Colors) // Include colors if needed
+                    .Include(p => p.Sizes)
+                    .Include(p => p.Colors)
                     .FirstOrDefaultAsync(p => p.ProductId.ToString() == productID);
 
                 // CHECK IF PRODUCT EXISTS
@@ -303,6 +354,7 @@ namespace EAD_Backend_Application__.NET.Services
                 var productDetails = new ProductDetailsDTO
                 {
                     ProductId = product.ProductId,
+                    ImageUri = product.ImageUri,
                     Name = product.Name,
                     Brand = product.Brand,
                     Price = product.Price,
