@@ -1,0 +1,57 @@
+name: CI/CD Pipeline for E-Commerce Application
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci-pipeline:
+    name: Build and Test E-Commerce Application
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore Dependencies
+        run: dotnet restore
+
+      - name: Set up Environment Variables
+        env:
+          JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
+          AUDIENCE: ${{ secrets.AUDIENCE }}
+          JWT_KEY: ${{ secrets.JWT_KEY }}
+        run: bash setup_env.sh
+
+      - name: Run Unit Tests
+        run: dotnet test --no-build --verbosity normal
+
+      - name: Build the Application
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Build Docker Image
+        uses: docker/build-push-action@v5
+        with:
+          context: ./output 
+          dockerfile: Dockerfile
+          push: false
+          tags:  ${{ secrets.DOCKER_HUB_USERNAME }}/e-commerce-app:latest
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Push Docker Image to Docker Hub
+        uses: docker/build-push-action@v5
+        with:
+          context: ./output 
+          dockerfile: Dockerfile
+          push: true
+          tags:  ${{ secrets.DOCKER_HUB_USERNAME }}/e-commerce-app:latest

@@ -38,7 +38,5 @@ namespace EAD_Backend_Application__.NET.DTOs
 
         [MinLengthCollection(1, ErrorMessage = "At least one color must be provided.")]
         public required List<string> Color { get; set; }
-
-        public bool IsVisible { get; set; } = true;
     }
 }

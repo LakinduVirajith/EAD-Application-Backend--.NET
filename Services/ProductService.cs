@@ -57,7 +57,7 @@ namespace EAD_Backend_Application__.NET.Services
                 Description = dto.Description,
                 Category = dto.Category,
                 StockQuantity = dto.StockQuantity,
-                IsVisible = dto.IsVisible,
+                IsVisible = false,
                 VendorId = vendor.Id
             };
 
@@ -115,7 +115,6 @@ namespace EAD_Backend_Application__.NET.Services
             product.Description = dto.Description;
             product.Category = dto.Category;
             product.StockQuantity = dto.StockQuantity;
-            product.IsVisible = dto.IsVisible;
 
             // CLEAR EXISTING SIZES AND COLORS
             product.Sizes.Clear();
@@ -194,7 +193,8 @@ namespace EAD_Backend_Application__.NET.Services
                         ProductId = p.ProductId,
                         Name = p.Name,
                         Price = p.Price,
-                        Discount = p.Discount
+                        Discount = p.Discount,
+                        StockQuantity = p.StockQuantity
                     })
                     .ToListAsync();
 
@@ -244,7 +244,8 @@ namespace EAD_Backend_Application__.NET.Services
                         ProductId = p.ProductId,
                         Name = p.Name,
                         Price = p.Price,
-                        Discount = p.Discount
+                        Discount = p.Discount,
+                        StockQuantity = p.StockQuantity
                     })
                     .ToListAsync();
 
@@ -263,6 +264,64 @@ namespace EAD_Backend_Application__.NET.Services
             catch (Exception)
             {
                 return new ObjectResult(new { Status = "Error", Message = "An error occurred while searching for products. Please try again later." })
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError
+                };
+            }
+        }
+
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> SearchProductCategoryAsync(string category, int pageNumber, int pageSize)
+        {
+            // VALIDATE PAGE NUMBER AND SIZE
+            if (pageNumber <= 0 || pageSize <= 0)
+            {
+                return new BadRequestObjectResult(new { Status = "Error", Message = "Invalid page number or page size." });
+            }
+
+            try
+            {
+                // VALIDATE THE CATEGORY USING THE ENUM
+                if (!Enum.TryParse<ProductCategory>(category, true, out var validCategory))
+                {
+                    return new BadRequestObjectResult(new { Status = "Error", Message = "Invalid product category provided." });
+                }
+
+                // FETCH TOTAL PRODUCT COUNT BASED ON CATEGORY
+                var totalProducts = await _context.Products
+                    .Where(p => p.Category.Equals(category) && p.IsVisible)
+                    .CountAsync();
+
+                // FETCH PAGED PRODUCTS BASED ON CATEGORY
+                var products = await _context.Products
+                    .Where(p => p.Category.Equals(category) && p.IsVisible)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(p => new ProductDTO
+                    {
+                        ProductId = p.ProductId,
+                        Name = p.Name,
+                        Price = p.Price,
+                        Discount = p.Discount,
+                        StockQuantity = p.StockQuantity
+                    })
+                    .ToListAsync();
+
+                // CREATE PAGINATION RESPONSE
+                var paginationResponse = new
+                {
+                    Status = "Success",
+                    TotalCount = totalProducts,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    Products = products
+                };
+
+                return new OkObjectResult(new { Status = "Success", Body = paginationResponse });
+            }
+            catch (Exception ex)
+            {
+                // HANDLE ANY UNEXPECTED ERRORS
+                return new ObjectResult(new { Status = "Error", Message = "An error occurred while searching for products by category. Please try again later.", Body = ex.Message })
                 {
                     StatusCode = StatusCodes.Status500InternalServerError
                 };
@@ -309,7 +368,8 @@ namespace EAD_Backend_Application__.NET.Services
                         ProductId = p.ProductId,
                         Name = p.Name,
                         Price = p.Price,
-                        Discount = p.Discount
+                        Discount = p.Discount,
+                        StockQuantity = p.StockQuantity
                     })
                     .ToListAsync();
 
@@ -400,6 +460,140 @@ namespace EAD_Backend_Application__.NET.Services
             catch (Exception)
             {
                 return new ConflictObjectResult(new { Status = "Error", Message = "Product cannot be deleted. It is currently in use. Please contact administration." });
+            }
+        }
+
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetActiveProductAsync(int pageNumber, int pageSize)
+        {
+            // VALIDATE PAGE NUMBER AND SIZE
+            if (pageNumber <= 0 || pageSize <= 0)
+            {
+                return new BadRequestObjectResult(new { Status = "Error", Message = "Invalid page number or page size." });
+            }
+
+            try
+            {
+                // FETCH TOTAL ACTIVE PRODUCT COUNT
+                var totalActiveProducts = await _context.Products
+                    .Where(p => p.IsVisible)
+                    .CountAsync();
+
+                // FETCH PAGED ACTIVE PRODUCTS
+                var activeProducts = await _context.Products
+                    .Where(p => p.IsVisible)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(p => new ProductDTO
+                    {
+                        ProductId = p.ProductId,
+                        Name = p.Name,
+                        Price = p.Price,
+                        Discount = p.Discount,
+                        StockQuantity = p.StockQuantity
+                    })
+                    .ToListAsync();
+
+                // CREATE PAGINATION RESPONSE
+                var paginationResponse = new
+                {
+                    Status = "Success",
+                    TotalCount = totalActiveProducts,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    Products = activeProducts
+                };
+
+                return new OkObjectResult(new { Status = "Success", Body = paginationResponse });
+            }
+            catch (Exception)
+            {
+                return new ObjectResult(new { Status = "Error", Message = "An error occurred while retrieving active products. Please try again later." })
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError
+                };
+            }
+        }
+
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetInactiveProductAsync(int pageNumber, int pageSize)
+        {
+            // VALIDATE PAGE NUMBER AND SIZE
+            if (pageNumber <= 0 || pageSize <= 0)
+            {
+                return new BadRequestObjectResult(new { Status = "Error", Message = "Invalid page number or page size." });
+            }
+
+            try
+            {
+                // FETCH TOTAL INACTIVE PRODUCT COUNT
+                var totalInactiveProducts = await _context.Products
+                    .Where(p => !p.IsVisible)
+                    .CountAsync();
+
+                // FETCH PAGED INACTIVE PRODUCTS
+                var inactiveProducts = await _context.Products
+                    .Where(p => !p.IsVisible)
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .Select(p => new ProductDTO
+                    {
+                        ProductId = p.ProductId,
+                        Name = p.Name,
+                        Price = p.Price,
+                        Discount = p.Discount,
+                        StockQuantity = p.StockQuantity
+                    })
+                    .ToListAsync();
+
+                // CREATE PAGINATION RESPONSE
+                var paginationResponse = new
+                {
+                    Status = "Success",
+                    TotalCount = totalInactiveProducts,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    Products = inactiveProducts
+                };
+
+                return new OkObjectResult(new { Status = "Success", Body = paginationResponse });
+            }
+            catch (Exception)
+            {
+                return new ObjectResult(new { Status = "Error", Message = "An error occurred while retrieving inactive products. Please try again later." })
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError
+                };
+            }
+        }
+
+        public async Task<IActionResult> UpdateProductStatusAsync(string productID, bool status)
+        {
+            try
+            {
+                // FIND THE PRODUCT BY ID
+                var product = await _context.Products.FindAsync(productID);
+
+                // CHECK IF PRODUCT EXISTS
+                if (product == null)
+                {
+                    return new NotFoundObjectResult(new { Status = "Error", Message = "Product not found. Please check the provided ID." });
+                }
+
+                // UPDATE THE PRODUCT STATUS
+                product.IsVisible = status;
+                _context.Products.Update(product);
+                await _context.SaveChangesAsync();
+
+                // CREATE A SUCCESS MESSAGE BASED ON THE STATUS
+                string message = status ? "Product status updated successfully to active." : "Product status updated successfully to inactive.";
+
+                return new OkObjectResult(new { Status = "Success", Message = message });
+            }
+            catch (Exception)
+            {
+                return new ObjectResult(new { Status = "Error", Message = "An error occurred while updating the product status. Please try again later." })
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError
+                };
             }
         }
     }

@@ -2,10 +2,11 @@
 {
     public class ProductDTO
     {
-        public string ProductId { get; set; } = string.Empty;
+        public required string ProductId { get; set; }
         public string? ImageUri { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public Double Price { get; set; } = 0.0;
-        public Double Discount { get; set; } = 0.0;
+        public required string Name { get; set; }
+        public required Double Price { get; set; } = 0.0;
+        public required Double Discount { get; set; } = 0.0;
+        public required int StockQuantity { get; set; } = 0;
     }
 }

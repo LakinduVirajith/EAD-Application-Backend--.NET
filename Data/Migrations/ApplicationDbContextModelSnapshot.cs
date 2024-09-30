@@ -89,6 +89,10 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("OrderItemId");
 
                     b.HasIndex("OrderId");
@@ -118,8 +122,7 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
 
                     b.Property<string>("OrderDate")
                         .IsRequired()
-                        .HasMaxLength(10)
-                        .HasColumnType("nvarchar(10)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
                         .IsRequired()
@@ -135,8 +138,7 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
 
                     b.Property<string>("Status")
                         .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<double>("TotalOrderPrice")
                         .HasColumnType("float");
@@ -239,6 +241,37 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("ProductSizes", (string)null);
+                });
+
+            modelBuilder.Entity("EAD_Backend_Application__.NET.Models.RankingModel", b =>
+                {
+                    b.Property<string>("RankingId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Comment")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CreatedAt")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CustomerId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("VendorId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("RankingId");
+
+                    b.HasIndex("VendorId");
+
+                    b.ToTable("Rankings", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -544,13 +577,13 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
 
             modelBuilder.Entity("EAD_Backend_Application__.NET.Models.ProductModel", b =>
                 {
-                    b.HasOne("EAD_Backend_Application__.NET.Models.UserModel", "User")
+                    b.HasOne("EAD_Backend_Application__.NET.Models.UserModel", "Vendor")
                         .WithMany("Products")
                         .HasForeignKey("VendorId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("User");
+                    b.Navigation("Vendor");
                 });
 
             modelBuilder.Entity("EAD_Backend_Application__.NET.Models.ProductSize", b =>
@@ -562,6 +595,17 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("EAD_Backend_Application__.NET.Models.RankingModel", b =>
+                {
+                    b.HasOne("EAD_Backend_Application__.NET.Models.UserModel", "Vendor")
+                        .WithMany("Rankings")
+                        .HasForeignKey("VendorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Vendor");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -645,6 +689,8 @@ namespace EAD_Backend_Application__.NET.Data.Migrations
                     b.Navigation("Orders");
 
                     b.Navigation("Products");
+
+                    b.Navigation("Rankings");
                 });
 #pragma warning restore 612, 618
         }

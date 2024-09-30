@@ -25,7 +25,7 @@ namespace EAD_Backend_Application__.NET.Services
             _context = context;
         }
 
-        public async Task<IActionResult> AddOrderAsync(string date, List<OrderItemDTO> itemDTOs)
+        public async Task<IActionResult> AddOrderAsync(string date)
         {
             // GET THE EMAIL FROM THE AUTHENTICATION HEADER
             var email = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Email)?.Value;
@@ -37,7 +37,7 @@ namespace EAD_Backend_Application__.NET.Services
             }
 
             // FIND THE USER BY EMAIL
-            var user = await _userManager.FindByEmailAsync(email);
+            var user = await _context.Users.Include(u => u.CartItems).FirstOrDefaultAsync(u => u.Email == email);
             if (user == null)
             {
                 return new NotFoundObjectResult(new { Status = "Error", Message = "User not found. Please ensure you are logged in." });
@@ -54,9 +54,9 @@ namespace EAD_Backend_Application__.NET.Services
                 return new BadRequestObjectResult(new { Status = "Error", Message = "Shipping details are incomplete. Please provide all required shipping information." });
             }
             // CHECK IF ITEM LIST IS EMPTY
-            if (itemDTOs.Count == 0)
+            if (user.CartItems.Count == 0)
             {
-                return new BadRequestObjectResult(new { Status = "Error", Message = "The item list cannot be empty. Please add at least one item." });
+                return new BadRequestObjectResult(new { Status = "Error", Message = "The cart item list cannot be empty. Please add at least one item." });
             }
 
             // INITIALIZE TOTAL PRICE
@@ -75,27 +75,27 @@ namespace EAD_Backend_Application__.NET.Services
                 PostalCode = user.PostalCode,
                 TotalOrderPrice = 0,
                 CustomerId = user.Id,
-                User = user
+                OrderItems = new List<OrderItemModel>()
             };
 
             // MAP EACH ITEM DTO TO ORDER ITEM MODEL
-            foreach (var itemDTO in itemDTOs)
+            foreach (var item in user.CartItems)
             {
-                var product = await _context.Products.FindAsync(itemDTO.ProductId);
+                var product = await _context.Products.FindAsync(item.ProductId);
                 if (product == null)
                 {
-                    return new NotFoundObjectResult(new { Status = "Error", Message = $"Product with ID {itemDTO.ProductId} not found. Please verify the product ID." });
+                    return new NotFoundObjectResult(new { Status = "Error", Message = $"Product with ID {item.ProductId} not found. Please verify the product ID." });
                 }
                 var orderItem = new OrderItemModel
                 {
                     ProductId = product.ProductId,
                     ProductName = product.Name,
                     Price = product.Price - (product.Price * product.Discount / 100),
-                    Quantity = itemDTO.Quantity,
-                    Size = itemDTO.Size,
-                    Color = itemDTO.Color,
+                    Quantity = item.Quantity,
+                    Size = item.Size,
+                    Color = item.Color,
+                    Status = OrderStatus.Pending.ToString(),
                     OrderId = order.OrderId,
-                    Order = order
                 };
 
                 // CALCULATE TOTAL PRICE FOR THIS ORDER ITEM
@@ -106,7 +106,10 @@ namespace EAD_Backend_Application__.NET.Services
             }
 
             // UPDATE THE TOTAL ORDER PRICE
-            order.TotalOrderPrice = totalPrice;
+            order.TotalOrderPrice = Math.Round(totalPrice, 2);
+
+            // CLEAN THE CART DETAILS
+            user.CartItems.Clear();
 
             try
             {
@@ -134,7 +137,7 @@ namespace EAD_Backend_Application__.NET.Services
                 var order = await _context.Orders.FindAsync(orderId);
                 if (order == null)
                 {
-                    return new NotFoundObjectResult(new { Status = "Error", Message = "Order not found." });
+                    return new NotFoundObjectResult(new { Status = "Error", Message = "No orders were found for the provided order Id" });
                 }
 
                 // Attempt to parse the status to an OrderStatus enum
@@ -157,18 +160,96 @@ namespace EAD_Backend_Application__.NET.Services
             }
         }
 
+        public async Task<IActionResult> OrderItemStatusAsync(string orderItemId, string status)
+        {
+            try
+            {
+                // FIND THE ORDER ITEM BY ID
+                var orderItem = await _context.OrderItems
+                    .Include(oi => oi.Order)    
+                    .FirstOrDefaultAsync(oi => oi.OrderItemId == orderItemId);
+
+                if (orderItem == null)
+                {
+                    return new NotFoundObjectResult(new { Status = "Error", Message = "No order items were found for the provided order item Id." });
+                }
+
+                // ATTEMPT TO PARSE THE STATUS TO AN ORDERSSTATUS ENUM
+                if (!Enum.TryParse<OrderStatus>(status, true, out var orderItemStatus))
+                {
+                    return new BadRequestObjectResult(new { Status = "Error", Message = "Invalid order item status provided." });
+                }
+
+                // HANDLE STOCK ADJUSTMENT IF STATUS IS PROCESSING OR CANCELLED
+                var product = await _context.Products.FindAsync(orderItem.ProductId);
+                if (product != null)
+                {
+                    if (orderItemStatus == OrderStatus.Processing && orderItem.Status == OrderStatus.Pending.ToString())
+                    {
+                        product.StockQuantity -= orderItem.Quantity;
+                    }
+                    else if (orderItemStatus == OrderStatus.Cancelled && orderItem.Status != OrderStatus.Pending.ToString())
+                    {
+                        product.StockQuantity += orderItem.Quantity;
+                    }
+                    _context.Products.Update(product);
+                }
+
+                // UPDATE ORDER ITEM STATUS
+                orderItem.Status = orderItemStatus.ToString();
+                _context.OrderItems.Update(orderItem);
+
+                // CHECK IF THE ORDER SHOULD BE MARKED AS DELIVERED
+                if (orderItem.Order.OrderItems.All(oi => oi.Status == OrderStatus.Delivered.ToString()))
+                {
+                    // IF ALL ORDER ITEMS ARE DELIVERED, UPDATE THE ORDER STATUS
+                    orderItem.Order.Status = OrderStatus.Delivered.ToString();
+                    _context.Orders.Update(orderItem.Order);
+                }
+
+                // SAVE ALL CHANGES IN ONE TRANSACTION
+                await _context.SaveChangesAsync();
+
+                return new OkObjectResult(new { Status = "Success", Message = "Order item status updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                // HANDLE UNEXPECTED ERRORS
+                return new ObjectResult(new { Status = "Error", Message = "An unexpected error occurred while updating the order item status. Please try again later.", Body = ex.Message })
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError
+                };
+            }
+        }
+
         public async Task<IActionResult> OrderCancellationAsync(OrderCancellationDTO dto)
         {
             try
             {
-                var order = await _context.Orders.FindAsync(dto.OrderId);
+                var order = await _context.Orders.Include(o => o.OrderItems).FirstOrDefaultAsync(o => o.OrderId == dto.OrderId);
                 if (order == null)
                 {
-                    return new NotFoundObjectResult(new { Status = "Error", Message = "Order not found." });
+                    return new NotFoundObjectResult(new { Status = "Error", Message = "No orders were found for the provided order Id." });
                 }
 
+                // UPDATE ORDER CANCELLATION DETAILS
                 order.CancellationReason = dto.CancellationReason;
                 order.Status = OrderStatus.Cancelled.ToString();
+
+                // RESTORE STOCK FOR ALL ORDER ITEMS
+                foreach (var orderItem in order.OrderItems)
+                {
+                    var product = await _context.Products.FindAsync(orderItem.ProductId);
+                    if (product != null)
+                    {
+                        if(orderItem.Status != OrderStatus.Pending.ToString())
+                        {
+                            product.StockQuantity += orderItem.Quantity;
+                        }
+                    }
+                }
+
+                // SAVE CHANGES TO DATABASE
                 await _context.SaveChangesAsync();
 
                 return new OkObjectResult(new { Status = "Success", Message = "Order cancelled successfully." });
@@ -202,6 +283,7 @@ namespace EAD_Backend_Application__.NET.Services
                     .Where(o => o.CustomerId == user.Id)
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
+                    .Include(o => o.OrderItems)
                     .ToListAsync();
 
                 if (!orders.Any())
@@ -212,7 +294,7 @@ namespace EAD_Backend_Application__.NET.Services
                 var orderDTOs = orders.Select(order => new OrderDTO
                 {
                     OrderId = order.OrderId,
-                    ProductImageResId = order.OrderItems.FirstOrDefault()?.ImageUri,
+                    ImageUri = order.OrderItems.FirstOrDefault()?.ImageUri,
                     OrderDate = order.OrderDate,
                     Status = order.Status,
                     TotalOrderPrice = order.TotalOrderPrice,
@@ -229,7 +311,7 @@ namespace EAD_Backend_Application__.NET.Services
             }
         }
 
-        public async Task<ActionResult<IEnumerable<OrderDTO>>> OrderVendorGetAsync(int pageNumber, int pageSize)
+        public async Task<ActionResult<IEnumerable<OrderItemDetailsDTO>>> OrderVendorGetAsync(int pageNumber, int pageSize)
         {
             // GET THE EMAIL FROM THE AUTHENTICATION HEADER
             var email = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Email)?.Value;
@@ -241,7 +323,7 @@ namespace EAD_Backend_Application__.NET.Services
             }
 
             // FIND THE USER BY EMAIL
-            var vendor = await _userManager.FindByEmailAsync(email);
+            var vendor = await _userManager.Users.Include(u => u.Products).FirstOrDefaultAsync(u => u.Email == email);
             if (vendor == null)
             {
                 return new NotFoundObjectResult(new { Status = "Error", Message = "Vendor not found. Please ensure you are logged in." });
@@ -249,26 +331,12 @@ namespace EAD_Backend_Application__.NET.Services
 
             try
             {
-                var products = vendor.Products.ToList();
-
-                if (!products.Any())
-                {
-                    return new NotFoundObjectResult(new { Status = "Error", Message = "No products found for this vendor." });
-                }
-
-                // Fetch order items that match the product IDs
-                var orderItems = await _context.OrderItems
-                    .Where(oi => products.Select(p => p.ProductId).Contains(oi.ProductId))
-                    .ToListAsync();
-
-                if (!orderItems.Any())
-                {
-                    return new NotFoundObjectResult(new { Status = "Error", Message = "No order items found for the products of this vendor." });
-                }
-
-                // Fetch orders associated with the order items
+                // FETCH ORDERS THAT ARE RELATED TO THE VENDOR'S PRODUCTS
                 var orders = await _context.Orders
-                    .Where(o => orderItems.Select(oi => oi.OrderId).Contains(o.OrderId))
+                    .Where(o => o.OrderItems.Any(oi => vendor.Products.Select(p => p.ProductId).Contains(oi.ProductId)))
+                    .Skip((pageNumber - 1) * pageSize)
+                    .Take(pageSize)
+                    .Include(o => o.OrderItems)
                     .ToListAsync();
 
                 if (!orders.Any())
@@ -276,17 +344,33 @@ namespace EAD_Backend_Application__.NET.Services
                     return new NotFoundObjectResult(new { Status = "Error", Message = "No orders found for the vendor's products." });
                 }
 
-                // MAPPING OrderDTO
-                var orderDTOs = orders.Select(order => new OrderDTO
-                {
-                    OrderId = order.OrderId,
-                    ProductImageResId = order.OrderItems.FirstOrDefault()?.ImageUri,
-                    OrderDate = order.OrderDate,
-                    Status = order.Status,
-                    TotalOrderPrice = order.TotalOrderPrice,
-                }).ToList();
+                // CREATE A LIST TO HOLD ORDER ITEM DETAILS
+                var orderItemDetails = new List<OrderItemDetailsDTO>();
 
-                return new OkObjectResult(orderDTOs);
+                // MAP TO ORDER DTO
+                // LOOP THROUGH EACH ORDER AND EXTRACT ORDER ITEMS
+                foreach (var order in orders)
+                {
+                    foreach (var oi in order.OrderItems)
+                    {
+                        var orderItemDTO = new OrderItemDetailsDTO
+                        {
+                            OrderItemId = oi.OrderItemId,
+                            ProductId = oi.ProductId,
+                            ProductName = oi.ProductName,
+                            ImageUri = oi.ImageUri,
+                            Price = oi.Price,
+                            Quantity = oi.Quantity,
+                            Size = oi.Size,
+                            Color = oi.Color,
+                            Status = oi.Status,
+                        };
+
+                        orderItemDetails.Add(orderItemDTO);
+                    }
+                }
+
+                return new OkObjectResult(orderItemDetails);
             }
             catch (Exception ex)
             {
@@ -305,6 +389,7 @@ namespace EAD_Backend_Application__.NET.Services
                     .Where(o => o.User.Email == userEmail)
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
+                    .Include(o => o.OrderItems)
                     .ToListAsync();
 
                 if (orders == null || !orders.Any())
@@ -315,7 +400,7 @@ namespace EAD_Backend_Application__.NET.Services
                 var orderDTOs = orders.Select(order => new OrderDTO
                 {
                     OrderId = order.OrderId,
-                    ProductImageResId = order.OrderItems.FirstOrDefault()?.ImageUri,
+                    ImageUri = order.OrderItems.FirstOrDefault()?.ImageUri,
                     OrderDate = order.OrderDate,
                     Status = order.Status,
                     TotalOrderPrice = order.TotalOrderPrice,
@@ -344,7 +429,7 @@ namespace EAD_Backend_Application__.NET.Services
                 // Check if the order exists
                 if (order == null)
                 {
-                    return new NotFoundObjectResult(new { Status = "Error", Message = "Order not found." });
+                    return new NotFoundObjectResult(new { Status = "Error", Message = "No orders were found for the provided order Id" });
                 }
 
                 // Map the order to OrderDetailsDTO
@@ -362,13 +447,15 @@ namespace EAD_Backend_Application__.NET.Services
                     PostalCode = order.PostalCode,
                     orderItemDetails = order.OrderItems.Select(oi => new OrderItemDetailsDTO
                     {
+                        OrderItemId = oi.OrderItemId,
                         ProductId = oi.ProductId,
                         ProductName = oi.ProductName,
-                        ImageResId = oi.ImageUri,
+                        ImageUri = oi.ImageUri,
                         Price = oi.Price,
-                        Quantity = oi.Quantity.ToString(),
+                        Quantity = oi.Quantity,
                         Size = oi.Size,
-                        Color = oi.Color
+                        Color = oi.Color,
+                        Status = oi.Status,
                     }).ToList()
                 };
 
