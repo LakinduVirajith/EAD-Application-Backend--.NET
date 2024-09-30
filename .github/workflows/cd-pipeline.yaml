@@ -43,7 +43,7 @@ jobs:
       - name: Build Docker Image
         uses: docker/build-push-action@v5
         with:
-          context: ./output 
+          context: .
           dockerfile: Dockerfile
           push: false
           tags:  ${{ secrets.DOCKER_HUB_USERNAME }}/e-commerce-app:latest
@@ -57,7 +57,7 @@ jobs:
       - name: Push Docker Image to Docker Hub
         uses: docker/build-push-action@v5
         with:
-          context: ./output 
+          context: .
           dockerfile: Dockerfile
           push: true
           tags:  ${{ secrets.DOCKER_HUB_USERNAME }}/e-commerce-app:latest
