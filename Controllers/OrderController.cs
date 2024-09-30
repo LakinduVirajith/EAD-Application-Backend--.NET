@@ -21,15 +21,15 @@ namespace EAD_Backend_Application__.NET.Controllers
         // POST: api/v1/order/add/{date}
         [HttpPost("add/{date}")]
         [Authorize(Roles = "Customer")]
-        public async Task<IActionResult> AddOrder(string date, List<OrderItemDTO> itemDTOs)
+        public async Task<IActionResult> AddOrder(string date)
         {
-            return await _orderService.AddOrderAsync(date, itemDTOs);
+            return await _orderService.AddOrderAsync(date);
         }
 
         /// <summary> Allows to change the status of an order.</summary>
         // PUT: api/v1/order/status
         [HttpPut("status")]
-        [Authorize(Roles = "Admin, CSR, Vendor")]
+        [Authorize(Roles = "Admin, CSR")]
         public async Task<IActionResult> OrderStatus(string orderId, string status)
         {
             return await _orderService.OrderStatusAsync(orderId, status);
@@ -65,8 +65,8 @@ namespace EAD_Backend_Application__.NET.Controllers
         /// <summary>Fetches a paginated list of orders for a vendor.</summary>
         // GET: api/v1/order/vednor/get
         [HttpGet("vendor/get")]
-        [Authorize(Roles = "Customer")]
-        public async Task<ActionResult<IEnumerable<OrderDTO>>> OrderVendorGet(int pageNumber, int pageSize)
+        [Authorize(Roles = "Vendor")]
+        public async Task<ActionResult<IEnumerable<OrderItemDetailsDTO>>> OrderVendorGet(int pageNumber, int pageSize)
         {
             return await _orderService.OrderVendorGetAsync(pageNumber, pageSize);
         }

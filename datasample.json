@@ -1,7 +1,7 @@
 [
     [
         {
-            "UserName": "John Doe",
+            "UserName": "John",
             "Email": "admin@gmail.com",
             "Password": "Admin@1234",
             "PhoneNumber": "2025550123",
@@ -11,7 +11,7 @@
             "Role": "Admin"
         },
         {
-            "UserName": "Jane Smith",
+            "UserName": "Jane",
             "Email": "csr@gmail.com",
             "Password": "CSR@1234",
             "PhoneNumber": "2025550456",
@@ -21,7 +21,7 @@
             "Role": "CSR"
         },
         {
-            "UserName": "Alex Vendor",
+            "UserName": "Alex",
             "Email": "vendor@gmail.com",
             "Password": "Vendor@1234",
             "PhoneNumber": "2025550789",
@@ -31,7 +31,7 @@
             "Role": "Vendor"
         },
         {
-            "UserName": "Sarah Johnson",
+            "UserName": "Sarah",
             "Email": "customer@gmail.com",
             "Password": "Customer@1234",
             "PhoneNumber": "2025550987",
@@ -51,6 +51,18 @@
             "BusinessName": "Tech Solutions",
             "BusinessLicenseNumber": "BS1234567",
             "PreferredPaymentMethod": "CreditCard"
+        },
+        {
+            "userName": "admin@gmail.com",
+            "password": "Admin@1234"
+        },
+        {
+            "userName": "vendor@gmail.com",
+            "password": "Vendor@1234"
+        },
+        {
+            "userName": "customer@gmail.com",
+            "password": "Customer@1234"
         }
     ],
 
