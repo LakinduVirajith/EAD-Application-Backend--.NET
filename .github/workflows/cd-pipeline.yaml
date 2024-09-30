@@ -26,13 +26,19 @@ jobs:
           JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
           AUDIENCE: ${{ secrets.AUDIENCE }}
           JWT_KEY: ${{ secrets.JWT_KEY }}
-        run: bash setup_env.sh
+        run: bash Setup-Env.sh
 
       - name: Run Unit Tests
         run: dotnet test --no-build --verbosity normal
 
       - name: Build the Application
         run: dotnet build --configuration Release --no-restore
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Build Docker Image
         uses: docker/build-push-action@v5

@@ -26,7 +26,7 @@ jobs:
           JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
           AUDIENCE: ${{ secrets.AUDIENCE }}
           JWT_KEY: ${{ secrets.JWT_KEY }}
-        run: bash setup_env.sh
+        run: bash Setup-Env.sh
 
       - name: Run Unit Tests
         run: dotnet test --no-build --verbosity normal
