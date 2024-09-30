@@ -1,0 +1,35 @@
+name: CI Pipeline for E-Commerce Application
+
+on:
+  pull_request:
+    branches: [development]
+
+jobs:
+  ci-pipeline:
+    name: Test E-Commerce Application
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore Dependencies
+        run: dotnet restore
+
+      - name: Set up Environment Variables
+        env:
+          JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
+          AUDIENCE: ${{ secrets.AUDIENCE }}
+          JWT_KEY: ${{ secrets.JWT_KEY }}
+        run: bash Setup-Env.sh
+
+      - name: Run Unit Tests
+        run: dotnet test --no-build --verbosity normal
+
+      - name: Build the Application
+        run: dotnet build --configuration Release --no-restore
