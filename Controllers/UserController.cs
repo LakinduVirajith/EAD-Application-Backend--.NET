@@ -18,8 +18,8 @@ namespace EAD_Backend_Application__.NET.Controllers
         }
 
         /// <summary>Allows an Admin or CSR to activate a user account by their email address.</summary>
-        // PUT: api/v1/user/activate/{email}
-        [HttpPut("activate/{email}")]
+        // GET: api/v1/user/activate/{email}
+        [HttpGet("activate/{email}")]
         [Authorize(Roles = "Admin, CSR")]
         public async Task<IActionResult> ActivateUser(string email)
         {
@@ -27,8 +27,8 @@ namespace EAD_Backend_Application__.NET.Controllers
         }
 
         /// <summary>Allows anyone to deactivate a user account by their email address.</summary>
-        // PUT: api/v1/user/deactivate/{email}
-        [HttpPut("deactivate/{email}")]
+        // GET: api/v1/user/deactivate/{email}
+        [HttpGet("deactivate/{email}")]
         [Authorize]
         public async Task<IActionResult> DeactivateUser(string email)
         {

@@ -27,7 +27,7 @@ namespace EAD_Backend_Application__.NET.Controllers
 
             if (result.Succeeded)
             {
-                return Ok("User registered successfully!");
+                return Ok("Sign up successfully!");
             }
 
             return BadRequest(result.Errors);
@@ -49,8 +49,8 @@ namespace EAD_Backend_Application__.NET.Controllers
         }
 
         /// <summary>Generates a new JWT token and refresh token using the provided refresh token.</summary>
-        // POST: api/v1/auth/refresh-token
-        [HttpPost("refresh-token/{refreshToken}")]
+        // GET: api/v1/auth/refresh-token
+        [HttpGet("refresh-token/{refreshToken}")]
         public async Task<IActionResult> RefreshToken(string refreshToken)
         {
             if (string.IsNullOrEmpty(refreshToken))
