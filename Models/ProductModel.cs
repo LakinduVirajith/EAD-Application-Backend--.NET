@@ -6,7 +6,7 @@ namespace EAD_Backend_Application__.NET.Models
     public class ProductModel
     {
         [Key]
-        public string ProductId { get; set; } = Guid.NewGuid().ToString();
+        public string ProductId { get; set; } = Guid.NewGuid().ToString().Substring(0, 16);
         public string? ImageUri { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Brand { get; set; } = string.Empty;

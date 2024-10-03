@@ -5,7 +5,7 @@ namespace EAD_Backend_Application__.NET.Models
     public class CartItemModel
     {
         [Key]
-        public string CartId { get; set; } = Guid.NewGuid().ToString();
+        public string CartId { get; set; } = Guid.NewGuid().ToString().Substring(0, 16);
 
         [Required(ErrorMessage = "Size is required.")]
         public string Size { get; set; } = string.Empty;

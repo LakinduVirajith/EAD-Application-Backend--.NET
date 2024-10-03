@@ -6,7 +6,7 @@ namespace EAD_Backend_Application__.NET.Models
     {
         // ORDER DETAILS
         [Key]
-        public string OrderId { get; set; } = Guid.NewGuid().ToString();
+        public string OrderId { get; set; } = Guid.NewGuid().ToString().Substring(0, 16);
         public required string OrderDate { get; set; }
         public required string Status { get; set; }
         public required Double TotalOrderPrice { get; set; }

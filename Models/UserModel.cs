@@ -6,6 +6,11 @@ namespace EAD_Backend_Application__.NET.Models
 {
     public class UserModel : IdentityUser
     {
+        public UserModel()
+        {
+            Id = Guid.NewGuid().ToString().Substring(0, 16);
+        }
+
         // CUSTOMER SPECIFIC FIELDS
         public string? ProfileImageUrl { get; set; }
         public required string DateOfBirth { get; set; }

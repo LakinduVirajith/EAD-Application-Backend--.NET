@@ -5,7 +5,7 @@ namespace EAD_Backend_Application__.NET.Models
     public class RankingModel
     {
         [Key]
-        public string RankingId { get; set; } = Guid.NewGuid().ToString();
+        public string RankingId { get; set; } = Guid.NewGuid().ToString().Substring(0, 16);
         public string Comment { get; set; } = string.Empty;
         public int Rating { get; set; } = 0;
         public string CustomerId { get; set; } = string.Empty;

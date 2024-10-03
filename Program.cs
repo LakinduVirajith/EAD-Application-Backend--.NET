@@ -64,7 +64,18 @@ namespace EAD_Backend_Application__.NET
                 };
             });
 
-            // 4. DEPENDENCY INJECTION
+            // 4. CORS CONFIGURATION
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", builder =>
+                {
+                    builder.AllowAnyOrigin()
+                           .AllowAnyMethod()
+                           .AllowAnyHeader();
+                });
+            });
+
+            // 5. DEPENDENCY INJECTION
             builder.Services.AddScoped<IAuthService, AuthService>();
             builder.Services.AddScoped<IUserService, UserService>();
             builder.Services.AddScoped<IProductService, ProductService>();
@@ -73,7 +84,7 @@ namespace EAD_Backend_Application__.NET
             builder.Services.AddScoped<IRankingService, RankingService>();
             builder.Services.AddScoped<TokenService>();
 
-            // 5. CONTROLLER & AUTHORIZATION CONFIGURATION
+            // 6. CONTROLLER & AUTHORIZATION CONFIGURATION
             builder.Services.AddControllers();
             builder.Services.AddAuthorization(options =>
             {
@@ -82,7 +93,7 @@ namespace EAD_Backend_Application__.NET
                 options.AddPolicy("CustomerPolicy", policy => policy.RequireRole("Customer"));
             });
 
-            // 6. SWAGGER CONFIGURATION
+            // 7. SWAGGER CONFIGURATION
             builder.Services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo
@@ -129,19 +140,31 @@ namespace EAD_Backend_Application__.NET
 
             var app = builder.Build();
 
-            // 7. ROLE CREATION & SEEDING
+            // 8. ROLE CREATION & SEEDING
             using (var scope = app.Services.CreateScope())
             {
                 var services = scope.ServiceProvider;
                 await CreateRoles(services);
             }
 
-            // 8. HTTP REQUEST PIPELINE CONFIGURATION
+            // 9. HTTP REQUEST PIPELINE CONFIGURATION
             if (app.Environment.IsDevelopment())
             {
                 app.UseMigrationsEndPoint();
 
                 // ENABLE SWAGGER IN DEVELOPMENT MODE
+                app.UseSwagger();
+                app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1");
+                    c.RoutePrefix = string.Empty; // SET SWAGGER UI TO OPEN AT THE ROOT
+                });
+            }
+            else if (app.Environment.IsProduction())
+            {
+                app.UseMigrationsEndPoint();
+
+                // ENABLE SWAGGER IN PRODUCTION MODE
                 app.UseSwagger();
                 app.UseSwaggerUI(c =>
                 {
@@ -159,6 +182,8 @@ namespace EAD_Backend_Application__.NET
             app.UseStaticFiles();
             app.UseRouting();
 
+            // ENABLE CORS
+            app.UseCors("AllowAll"); // ENABLE CORS POLICY
             // ENABLE AUTHENTICATION AND AUTHORIZATION MIDDLEWARE
             app.UseAuthentication();  // JWT AUTHENTICATION
             app.UseAuthorization();   // ROLE-BASED AUTHORIZATION

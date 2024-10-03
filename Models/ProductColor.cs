@@ -5,7 +5,7 @@ namespace EAD_Backend_Application__.NET.Models
     public class ProductColor
     {
         [Key]
-        public string ColorId { get; set; } = Guid.NewGuid().ToString();
+        public string ColorId { get; set; } = Guid.NewGuid().ToString().Substring(0, 16);
 
         [Required(ErrorMessage = "Color is required.")]
         [StringLength(20, MinimumLength = 2, ErrorMessage = "Color must be between 2 and 20 characters.")]
