@@ -49,6 +49,7 @@ namespace ASP.NET___CRUD.Services
             var user = new UserModel
             {
                 UserName = dto.UserName,
+                ProfileImageUrl = dto.ProfileImageUrl,
                 Email = dto.Email,
                 PhoneNumber = dto.PhoneNumber,
                 DateOfBirth = dto.DateOfBirth,

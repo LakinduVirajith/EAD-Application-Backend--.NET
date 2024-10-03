@@ -5,7 +5,7 @@ namespace EAD_Backend_Application__.NET.Models
     public class OrderItemModel
     {
         [Key]
-        public string OrderItemId { get; set; } = Guid.NewGuid().ToString();
+        public string OrderItemId { get; set; } = Guid.NewGuid().ToString().Substring(0, 16);
         public required string ProductId { get; set; }
         public required string ProductName { get; set; }
         public string? ImageUri { get; set; }

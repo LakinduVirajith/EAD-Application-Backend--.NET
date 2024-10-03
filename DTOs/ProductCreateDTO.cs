@@ -9,6 +9,9 @@ namespace EAD_Backend_Application__.NET.DTOs
         [StringLength(40, MinimumLength = 2, ErrorMessage = "Product Name must be between 2 and 40 characters.")]
         public required string Name { get; set; }
 
+        [StringLength(100, MinimumLength = 5, ErrorMessage = "Image Uri must be between 5 and 100 characters.")]
+        public string? ImageUrl { get; set; }
+
         [Required(ErrorMessage = "Brand Name is required.")]
         [StringLength(40, MinimumLength = 2, ErrorMessage = "Brand Name must be between 2 and 40 characters.")]
         public required string Brand { get; set; }

@@ -5,7 +5,7 @@ namespace EAD_Backend_Application__.NET.Models
     public class ProductSize
     {
         [Key]
-        public string SizeId { get; set; } = Guid.NewGuid().ToString();
+        public string SizeId { get; set; } = Guid.NewGuid().ToString().Substring(0, 16);
 
         [Required(ErrorMessage = "Size is required.")]
         [StringLength(20, MinimumLength = 2, ErrorMessage = "Size must be between 2 and 20 characters.")]

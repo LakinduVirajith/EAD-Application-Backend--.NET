@@ -51,6 +51,7 @@ namespace EAD_Backend_Application__.NET.Services
             var product = new ProductModel
             {
                 Name = dto.Name,
+                ImageUri = dto.ImageUrl,
                 Brand = dto.Brand,
                 Price = dto.Price,
                 Discount = dto.Discount,
@@ -107,8 +108,8 @@ namespace EAD_Backend_Application__.NET.Services
             }
 
             // UPDATE PRODUCT PROPERTIES
-            product.ImageUri = dto.ImageUri;
             product.Name = dto.Name;
+            product.ImageUri = dto.ImageUri;
             product.Brand = dto.Brand;
             product.Price = dto.Price;
             product.Discount = dto.Discount;
@@ -191,6 +192,7 @@ namespace EAD_Backend_Application__.NET.Services
                     .Select(p => new ProductDTO
                     {
                         ProductId = p.ProductId,
+                        ImageUri = p.ImageUri,
                         Name = p.Name,
                         Price = p.Price,
                         Discount = p.Discount,
@@ -242,6 +244,7 @@ namespace EAD_Backend_Application__.NET.Services
                     .Select(p => new ProductDTO
                     {
                         ProductId = p.ProductId,
+                        ImageUri = p.ImageUri,
                         Name = p.Name,
                         Price = p.Price,
                         Discount = p.Discount,
@@ -299,6 +302,7 @@ namespace EAD_Backend_Application__.NET.Services
                     .Select(p => new ProductDTO
                     {
                         ProductId = p.ProductId,
+                        ImageUri = p.ImageUri,
                         Name = p.Name,
                         Price = p.Price,
                         Discount = p.Discount,
@@ -366,6 +370,7 @@ namespace EAD_Backend_Application__.NET.Services
                     .Select(p => new ProductDTO
                     {
                         ProductId = p.ProductId,
+                        ImageUri = p.ImageUri,
                         Name = p.Name,
                         Price = p.Price,
                         Discount = p.Discount,
@@ -486,6 +491,7 @@ namespace EAD_Backend_Application__.NET.Services
                     .Select(p => new ProductDTO
                     {
                         ProductId = p.ProductId,
+                        ImageUri = p.ImageUri,
                         Name = p.Name,
                         Price = p.Price,
                         Discount = p.Discount,
@@ -537,6 +543,7 @@ namespace EAD_Backend_Application__.NET.Services
                     .Select(p => new ProductDTO
                     {
                         ProductId = p.ProductId,
+                        ImageUri = p.ImageUri,
                         Name = p.Name,
                         Price = p.Price,
                         Discount = p.Discount,

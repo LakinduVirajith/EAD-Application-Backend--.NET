@@ -313,6 +313,36 @@ namespace EAD_Backend_Application__.NET.Services
             });
         }
 
+        public async Task<ActionResult<UserShippingDetailsDTO>> GetUserShippingAsync()
+        {
+            // GET THE EMAIL FROM AUTHENTICATION HEADER
+            var email = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Email)?.Value;
+
+            // CHECK IF EMAIL IS NULL
+            if (string.IsNullOrEmpty(email))
+            {
+                return new NotFoundObjectResult(new { Status = "Error", Message = "User not found. Please ensure you are logged in." });
+            }
+
+            // FIND THE USER BY EMAIL
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user == null)
+            {
+                return new NotFoundObjectResult(new { Status = "Error", Message = "User not found. Please ensure you are logged in." });
+            }
+
+            var userShippingDetails = new UserShippingDetailsDTO
+            {
+                Address = user.Address ?? string.Empty,
+                City = user.City ?? string.Empty,
+                State = user.State ?? string.Empty,
+                PostalCode = user.PostalCode ?? string.Empty,
+            };
+
+            // RETURN USER DETAILS
+            return new OkObjectResult(userShippingDetails);
+        }
+
         public async Task<IActionResult> UpdateUserShippingAsync(UserShippingDetailsDTO dto)
         {
             // GET THE EMAIL FROM AUTHENTICATION HEADER

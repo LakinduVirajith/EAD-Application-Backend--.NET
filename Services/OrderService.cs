@@ -90,6 +90,7 @@ namespace EAD_Backend_Application__.NET.Services
                 {
                     ProductId = product.ProductId,
                     ProductName = product.Name,
+                    ImageUri = product.ImageUri,
                     Price = product.Price - (product.Price * product.Discount / 100),
                     Quantity = item.Quantity,
                     Size = item.Size,
@@ -277,30 +278,42 @@ namespace EAD_Backend_Application__.NET.Services
                 return new NotFoundObjectResult(new { Status = "Error", Message = "User not found. Please ensure you are logged in." });
             }
 
+            if (pageNumber <= 0 || pageSize <= 0)
+            {
+                return new BadRequestObjectResult(new { Status = "Error", Message = "Invalid page number or page size." });
+            }
+
             try
             {
+
+                var totalOrders = await _context.Orders.CountAsync(o => o.CustomerId == user.Id);
+
                 var orders = await _context.Orders
                     .Where(o => o.CustomerId == user.Id)
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .Include(o => o.OrderItems)
+                    .Select(o => new OrderDTO
+                    {
+                        OrderId = o.OrderId,
+                        ImageUri = o.OrderItems.FirstOrDefault().ImageUri,
+                        OrderDate = o.OrderDate,
+                        Status = o.Status,
+                        TotalOrderPrice = o.TotalOrderPrice,
+                    })
                     .ToListAsync();
 
-                if (!orders.Any())
-                {
-                    return new NotFoundObjectResult(new { Status = "Error", Message = "No orders found for this user." });
-                }
 
-                var orderDTOs = orders.Select(order => new OrderDTO
+                var paginationResponse = new
                 {
-                    OrderId = order.OrderId,
-                    ImageUri = order.OrderItems.FirstOrDefault()?.ImageUri,
-                    OrderDate = order.OrderDate,
-                    Status = order.Status,
-                    TotalOrderPrice = order.TotalOrderPrice,
-                }).ToList();
+                    Status = "Success",
+                    TotalCount = totalOrders,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    Orders = orders
+                };
 
-                return new OkObjectResult(orderDTOs);
+                return new OkObjectResult(new { Status = "Success", Body = paginationResponse });
             }
             catch (Exception ex)
             {
@@ -329,8 +342,17 @@ namespace EAD_Backend_Application__.NET.Services
                 return new NotFoundObjectResult(new { Status = "Error", Message = "Vendor not found. Please ensure you are logged in." });
             }
 
+            if (pageNumber <= 0 || pageSize <= 0)
+            {
+                return new BadRequestObjectResult(new { Status = "Error", Message = "Invalid page number or page size." });
+            }
+
             try
             {
+                var totalOrders = await _context.Orders
+                    .Where(o => o.OrderItems.Any(oi => vendor.Products.Select(p => p.ProductId).Contains(oi.ProductId)))
+                    .CountAsync();
+
                 // FETCH ORDERS THAT ARE RELATED TO THE VENDOR'S PRODUCTS
                 var orders = await _context.Orders
                     .Where(o => o.OrderItems.Any(oi => vendor.Products.Select(p => p.ProductId).Contains(oi.ProductId)))
@@ -339,38 +361,31 @@ namespace EAD_Backend_Application__.NET.Services
                     .Include(o => o.OrderItems)
                     .ToListAsync();
 
-                if (!orders.Any())
-                {
-                    return new NotFoundObjectResult(new { Status = "Error", Message = "No orders found for the vendor's products." });
-                }
 
                 // CREATE A LIST TO HOLD ORDER ITEM DETAILS
-                var orderItemDetails = new List<OrderItemDetailsDTO>();
-
-                // MAP TO ORDER DTO
-                // LOOP THROUGH EACH ORDER AND EXTRACT ORDER ITEMS
-                foreach (var order in orders)
+                var orderItemDetails = orders.SelectMany(o => o.OrderItems.Select(oi => new OrderItemDetailsDTO
                 {
-                    foreach (var oi in order.OrderItems)
-                    {
-                        var orderItemDTO = new OrderItemDetailsDTO
-                        {
-                            OrderItemId = oi.OrderItemId,
-                            ProductId = oi.ProductId,
-                            ProductName = oi.ProductName,
-                            ImageUri = oi.ImageUri,
-                            Price = oi.Price,
-                            Quantity = oi.Quantity,
-                            Size = oi.Size,
-                            Color = oi.Color,
-                            Status = oi.Status,
-                        };
+                    OrderItemId = oi.OrderItemId,
+                    ProductId = oi.ProductId,
+                    ProductName = oi.ProductName,
+                    ImageUri = oi.ImageUri,
+                    Price = oi.Price,
+                    Quantity = oi.Quantity,
+                    Size = oi.Size,
+                    Color = oi.Color,
+                    Status = oi.Status,
+                })).ToList();
 
-                        orderItemDetails.Add(orderItemDTO);
-                    }
-                }
+                var paginationResponse = new
+                {
+                    Status = "Success",
+                    TotalCount = totalOrders,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    Orders = orders
+                };
 
-                return new OkObjectResult(orderItemDetails);
+                return new OkObjectResult(new { Status = "Success", Body = paginationResponse });
             }
             catch (Exception ex)
             {
@@ -383,30 +398,42 @@ namespace EAD_Backend_Application__.NET.Services
 
         public async Task<ActionResult<IEnumerable<OrderDTO>>> OrderAdminGetAsync(string userEmail, int pageNumber, int pageSize)
         {
+            if (pageNumber <= 0 || pageSize <= 0)
+            {
+                return new BadRequestObjectResult(new { Status = "Error", Message = "Invalid page number or page size." });
+            }
+
             try
             {
+                var totalOrders = await _context.Orders
+                    .Where(o => o.User.Email == userEmail)
+                    .CountAsync();
+
                 var orders = await _context.Orders
                     .Where(o => o.User.Email == userEmail)
                     .Skip((pageNumber - 1) * pageSize)
                     .Take(pageSize)
                     .Include(o => o.OrderItems)
+                    .Select(o => new OrderDTO
+                    {
+                        OrderId = o.OrderId,
+                        ImageUri = o.OrderItems.FirstOrDefault().ImageUri,
+                        OrderDate = o.OrderDate,
+                        Status = o.Status,
+                        TotalOrderPrice = o.TotalOrderPrice,
+                    })
                     .ToListAsync();
 
-                if (orders == null || !orders.Any())
+                var paginationResponse = new
                 {
-                    return new NotFoundObjectResult(new { Status = "Error", Message = "No orders found for the specified user." });
-                }
+                    Status = "Success",
+                    TotalCount = totalOrders,
+                    PageNumber = pageNumber,
+                    PageSize = pageSize,
+                    Orders = orders
+                };
 
-                var orderDTOs = orders.Select(order => new OrderDTO
-                {
-                    OrderId = order.OrderId,
-                    ImageUri = order.OrderItems.FirstOrDefault()?.ImageUri,
-                    OrderDate = order.OrderDate,
-                    Status = order.Status,
-                    TotalOrderPrice = order.TotalOrderPrice,
-                }).ToList();
-
-                return new OkObjectResult(orderDTOs);
+                return new OkObjectResult(new { Status = "Success", Body = paginationResponse });
             }
             catch (Exception ex)
             {
