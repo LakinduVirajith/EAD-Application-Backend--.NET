@@ -1,4 +1,5 @@
-﻿using EAD_Backend_Application__.NET.Data;
+﻿using Azure.Storage.Blobs;
+using EAD_Backend_Application__.NET.Data;
 using EAD_Backend_Application__.NET.DTOs;
 using EAD_Backend_Application__.NET.Enums;
 using EAD_Backend_Application__.NET.Models;
@@ -6,7 +7,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EAD_Backend_Application__.NET.Services
 {
@@ -17,14 +17,20 @@ namespace EAD_Backend_Application__.NET.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ApplicationDbContext _context;
         private readonly TokenService _tokenService;
+        private readonly BlobServiceClient _blobServiceClient;
+        private readonly string _blobContainerName;
 
         // CONSTRUCTOR TO INJECT DEPENDENCIES
-        public UserService(UserManager<UserModel> userManager, IHttpContextAccessor httpContextAccessor, ApplicationDbContext context, TokenService tokenService)
+        public UserService(UserManager<UserModel> userManager, IHttpContextAccessor httpContextAccessor, ApplicationDbContext context, TokenService tokenService, IConfiguration configuration)
         {
             _userManager = userManager;
             _httpContextAccessor = httpContextAccessor;
             _context = context;
             _tokenService = tokenService;
+
+            _blobServiceClient = new BlobServiceClient(configuration.GetConnectionString("AzureBlobStorage"));
+            _blobContainerName = configuration.GetValue<string>("BlobContainerNames:ForAccount")
+                                ?? throw new ArgumentNullException(nameof(_blobContainerName), "Blob container name for products is not configured.");
         }
 
         public async Task<IActionResult> ActivateUserAsync(string email)
@@ -108,7 +114,41 @@ namespace EAD_Backend_Application__.NET.Services
             {
                 return new NotFoundObjectResult(new { Status = "Error", Message = "User not found. Please ensure you are logged in." });
             }
-            return new NotFoundObjectResult(new { Status = "Error", Message = "This feature is currently under development and is not yet implemented." });
+
+            try
+            {
+                // CREATE A UNIQUE FILENAME USING A GUID
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+
+                // GET A REFERENCE TO THE BLOB CONTAINER
+                var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_blobContainerName);
+
+                // ENSURE THE CONTAINER EXISTS
+                await blobContainerClient.CreateIfNotExistsAsync();
+
+                // GET A REFERENCE TO THE BLOB (FILE)
+                var blobClient = blobContainerClient.GetBlobClient(fileName);
+
+                // UPLOAD THE FILE TO THE BLOB
+                using (var stream = imageFile.OpenReadStream())
+                {
+                    await blobClient.UploadAsync(stream, overwrite: true);
+                }
+
+                // GENERATE THE URI OF THE UPLOADED IMAGE
+                var imageUri = blobClient.Uri.ToString();
+
+                // RETURN THE URI TO THE FRONT-END
+                return new OkObjectResult(new { Status = "Success", ImageUrl = imageUri });
+            }
+            catch (Exception)
+            {
+                // RETURN ERROR RESPONSE IF SOMETHING FAILS
+                return new ObjectResult(new { Status = "Error", Message = "An error occurred while saving the user image. Please try again later." })
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError
+                };
+            }
         }
 
         public async Task<IActionResult> UpdateUserEmailAsync(UpdateEmailDTO dto)

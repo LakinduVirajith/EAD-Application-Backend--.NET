@@ -23,6 +23,7 @@ jobs:
 
       - name: Set up Environment Variables
         env:
+          BLOB_STORAGE_KEY: ${{ secrets.BLOB_STORAGE_KEY }}
           JWT_ISSUER: ${{ secrets.JWT_ISSUER }}
           AUDIENCE: ${{ secrets.AUDIENCE }}
           JWT_KEY: ${{ secrets.JWT_KEY }}
