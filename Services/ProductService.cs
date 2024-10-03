@@ -1,10 +1,12 @@
-﻿using EAD_Backend_Application__.NET.Data;
+﻿using Azure.Storage.Blobs;
+using EAD_Backend_Application__.NET.Data;
 using EAD_Backend_Application__.NET.DTOs;
 using EAD_Backend_Application__.NET.Enums;
 using EAD_Backend_Application__.NET.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System.Data;
 using System.Security.Claims;
 
@@ -15,12 +17,18 @@ namespace EAD_Backend_Application__.NET.Services
         private readonly UserManager<UserModel> _userManager;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ApplicationDbContext _context;
+        private readonly BlobServiceClient _blobServiceClient;
+        private readonly string _blobContainerName;
 
-        public ProductService(UserManager<UserModel> userManager, IHttpContextAccessor httpContextAccessor, ApplicationDbContext context)
+        public ProductService(UserManager<UserModel> userManager, IHttpContextAccessor httpContextAccessor, ApplicationDbContext context, IConfiguration configuration)
         {
             _userManager = userManager;
             _httpContextAccessor = httpContextAccessor;
             _context = context;
+            _blobServiceClient = new BlobServiceClient(configuration.GetConnectionString("AzureBlobStorage"));
+
+            _blobContainerName = configuration.GetValue<string>("BlobContainerNames:ForProduct")
+                                ?? throw new ArgumentNullException(nameof(_blobContainerName), "Blob container name for products is not configured.");
         }
 
         public async Task<IActionResult> CreateProductAsync(ProductCreateDTO dto)
@@ -84,7 +92,40 @@ namespace EAD_Backend_Application__.NET.Services
 
         public async Task<IActionResult> UpdateProductImageAsync(IFormFile imageFile)
         {
-            return await Task.FromResult(new NotFoundObjectResult(new { Status = "Error", Message = "This feature is currently under development and is not yet implemented." }));
+            try
+            {
+                // CREATE A UNIQUE FILENAME USING A GUID
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+
+                // GET A REFERENCE TO THE BLOB CONTAINER
+                var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_blobContainerName);
+
+                // ENSURE THE CONTAINER EXISTS
+                await blobContainerClient.CreateIfNotExistsAsync();
+
+                // GET A REFERENCE TO THE BLOB (FILE)
+                var blobClient = blobContainerClient.GetBlobClient(fileName);
+
+                // UPLOAD THE FILE TO THE BLOB
+                using (var stream = imageFile.OpenReadStream())
+                {
+                    await blobClient.UploadAsync(stream, overwrite: true);
+                }
+
+                // GENERATE THE URI OF THE UPLOADED IMAGE
+                var imageUri = blobClient.Uri.ToString();
+
+                // RETURN THE URI TO THE FRONT-END
+                return new OkObjectResult(new { Status = "Success", ImageUrl = imageUri });
+            }
+            catch (Exception)
+            {
+                // RETURN ERROR RESPONSE IF SOMETHING FAILS
+                return new ObjectResult(new { Status = "Error", Message = "An error occurred while saving the product image. Please try again later." })
+                {
+                    StatusCode = StatusCodes.Status500InternalServerError
+                };
+            }
         }
 
         public async Task<IActionResult> UpdateProductAsync(ProductDetailsDTO dto)
