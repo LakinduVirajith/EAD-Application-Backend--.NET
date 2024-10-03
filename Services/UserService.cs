@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace EAD_Backend_Application__.NET.Services
 {
@@ -22,7 +21,7 @@ namespace EAD_Backend_Application__.NET.Services
         private readonly string _blobContainerName;
 
         // CONSTRUCTOR TO INJECT DEPENDENCIES
-        public UserService(UserManager<UserModel> userManager, IHttpContextAccessor httpContextAccessor, ApplicationDbContext context, TokenService tokenService, , IConfiguration configuration)
+        public UserService(UserManager<UserModel> userManager, IHttpContextAccessor httpContextAccessor, ApplicationDbContext context, TokenService tokenService, IConfiguration configuration)
         {
             _userManager = userManager;
             _httpContextAccessor = httpContextAccessor;

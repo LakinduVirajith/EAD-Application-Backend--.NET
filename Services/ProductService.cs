@@ -6,7 +6,6 @@ using EAD_Backend_Application__.NET.Models;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using System.Data;
 using System.Security.Claims;
 
