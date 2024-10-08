@@ -29,7 +29,7 @@ namespace EAD_Backend_Application__.NET.Services
             _tokenService = tokenService;
 
             _blobServiceClient = new BlobServiceClient(configuration.GetConnectionString("AzureBlobStorage"));
-            _blobContainerName = configuration.GetValue<string>("BlobContainerNames:ForAccount")
+            _blobContainerName = configuration.GetValue<string>("BlobContainerNames:ForUser")
                                 ?? throw new ArgumentNullException(nameof(_blobContainerName), "Blob container name for products is not configured.");
         }
 

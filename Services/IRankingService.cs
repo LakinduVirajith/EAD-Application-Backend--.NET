@@ -8,6 +8,6 @@ namespace EAD_Backend_Application__.NET.Services
         Task<IActionResult> AddVendorRankingAsync(RankingDTO dto);
         Task<IActionResult> GetVendorRatingAvarageAsync(string vendorId);
         Task<IActionResult> GetVendorTotalSalesAsync(string vendorId);
-        Task<ActionResult<IEnumerable<RankingDetailsDTO>>> GetVendorRankingsAsync(string vendorId);
+        Task<ActionResult<IEnumerable<RankingDetailsDTO>>> GetVendorRankingsAsync(string email);
     }
 }

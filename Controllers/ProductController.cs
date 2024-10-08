@@ -51,7 +51,7 @@ namespace EAD_Backend_Application__.NET.Controllers
         /// <summary>Allows a vendor to update details of an existing product.</summary>
         // PUT: api/v1/product/update
         [HttpPut("stock")]
-        [Authorize(Roles = "Vendor")]
+        [Authorize(Roles = "Vendor, Admin")]
         public async Task<IActionResult> UpdateProductStock(ProductStockDTO dto)
         {
             return await _productService.UpdateProductStockAsync(dto);
@@ -105,7 +105,7 @@ namespace EAD_Backend_Application__.NET.Controllers
         /// <summary>Allows a vendor to delete a product by its ID.</summary>
         // DELETE: api/v1/product/{productID}
         [HttpDelete("{productID}")]
-        [Authorize(Roles = "Vendor")]
+        [Authorize(Roles = "Vendor, Admin")]
         public async Task<IActionResult> DeleteProduct(string productID)
         {
             return await _productService.DeleteProductAsync(productID);

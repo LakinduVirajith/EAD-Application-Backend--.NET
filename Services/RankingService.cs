@@ -41,6 +41,20 @@ namespace EAD_Backend_Application__.NET.Services
                 return new NotFoundObjectResult(new { Status = "Error", Message = "User not found. Please ensure you are logged in." });
             }
 
+            // FIND THE ORDER ITEM BY ID FROM THE DTO
+            var orderItem = await _context.OrderItems.FindAsync(dto.OrderItemId);
+            if (orderItem == null)
+            {
+                return new NotFoundObjectResult(new { Status = "Error", Message = "Order item not found." });
+            }
+
+            // FIND THE PRODUCT ASSOCIATED WITH THE ORDER ITEM
+            var product = await _context.Products.FindAsync(orderItem.ProductId);
+            if (product == null)
+            {
+                return new NotFoundObjectResult(new { Status = "Error", Message = "Product not found." });
+            }
+
             // MAP DTO TO RANKING MODEL
             var ranking = new RankingModel
             {
@@ -48,7 +62,7 @@ namespace EAD_Backend_Application__.NET.Services
                 Rating = dto.Rating,
                 CustomerId = user.Id,
                 CreatedAt = dto.CreatedAt,
-                VendorId = dto.VendorId
+                VendorId = product.VendorId
             };
 
             // SAVE TO DATABASE (USING DBCONTEXT)
@@ -105,18 +119,18 @@ namespace EAD_Backend_Application__.NET.Services
             return new OkObjectResult(new { Status = "Success", Body = totalSales });
         }
 
-        public async Task<ActionResult<IEnumerable<RankingDetailsDTO>>> GetVendorRankingsAsync(string vendorId)
+        public async Task<ActionResult<IEnumerable<RankingDetailsDTO>>> GetVendorRankingsAsync(string email)
         {
             // VALIDATE IF VENDOR EXISTS
-            var vendorExists = await _context.Users.AnyAsync(u => u.Id == vendorId && u.Role == "Vendor");
-            if (!vendorExists)
+            var vendorExists = await _context.Users.FirstOrDefaultAsync(u => u.Email == email && u.Role == "Vendor");
+            if (vendorExists == null)
             {
                 return new NotFoundObjectResult(new { Status = "Error", Message = "The specified vendor could not be found. Please check the vendor ID and try again." });
             }
 
             // RETRIEVE RANKINGS FOR THE VENDOR
             var rankings = await _context.Rankings
-                .Where(r => r.VendorId == vendorId)
+                .Where(r => r.VendorId == vendorExists.Id)
                 .Select(r => new RankingDetailsDTO
                 {
                     VendorId = r.VendorId,

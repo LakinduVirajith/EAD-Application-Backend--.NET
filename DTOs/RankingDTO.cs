@@ -5,7 +5,7 @@ namespace EAD_Backend_Application__.NET.DTOs
     public class RankingDTO
     {
         [Required(ErrorMessage = "Vendor Id is required.")]
-        public required string VendorId { get; set; }
+        public required string OrderItemId { get; set; }
 
         [Required(ErrorMessage = "Comment is required.")]
         [StringLength(200, MinimumLength = 2, ErrorMessage = "Comment must be between 2 and 200 characters.")]
