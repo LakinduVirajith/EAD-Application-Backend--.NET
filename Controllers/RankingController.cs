@@ -44,12 +44,12 @@ namespace EAD_Backend_Application__.NET.Controllers
         }
 
         /// <summary>Retrieves detailed ranking and review information for a specified vendor.</summary>
-        // GET: api/v1/ranking/details/{vendorId}
-        [HttpGet("details/{vendorId}")]
+        // GET: api/v1/ranking/details/{email}
+        [HttpGet("details/{email}")]
         [Authorize(Roles = "Admin, CSR, Vendor")]
-        public async Task<ActionResult<IEnumerable<RankingDetailsDTO>>> GetVendorRankings(string vendorId)
+        public async Task<ActionResult<IEnumerable<RankingDetailsDTO>>> GetVendorRankings(string email)
         {
-            return await _rankingService.GetVendorRankingsAsync(vendorId);
+            return await _rankingService.GetVendorRankingsAsync(email);
         }
     }
 }

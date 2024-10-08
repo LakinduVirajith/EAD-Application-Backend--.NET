@@ -382,7 +382,7 @@ namespace EAD_Backend_Application__.NET.Services
                     TotalCount = totalOrders,
                     PageNumber = pageNumber,
                     PageSize = pageSize,
-                    Orders = orders
+                    Orders = orderItemDetails
                 };
 
                 return new OkObjectResult(new { Status = "Success", Body = paginationResponse });
